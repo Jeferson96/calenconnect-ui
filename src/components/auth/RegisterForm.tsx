@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -15,6 +15,8 @@ import {
 } from '@/components/ui/form';
 import { useAuth } from '@/contexts/AuthContext';
 import { Link } from 'react-router-dom';
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertCircle } from "lucide-react";
 
 const registerSchema = z.object({
   firstName: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
@@ -31,6 +33,7 @@ type RegisterFormValues = z.infer<typeof registerSchema>;
 
 const RegisterForm = () => {
   const { signUp } = useAuth();
+  const [registrationError, setRegistrationError] = useState<string | null>(null);
   
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
@@ -44,7 +47,18 @@ const RegisterForm = () => {
   });
 
   const onSubmit = async (values: RegisterFormValues) => {
-    await signUp(values.email, values.password, values.firstName, values.lastName);
+    try {
+      setRegistrationError(null);
+      await signUp(values.email, values.password, values.firstName, values.lastName);
+    } catch (error: any) {
+      console.error('Form submission error:', error);
+      // Manejar errores específicos de conexión
+      if (error.message?.includes('ERR_NAME_NOT_RESOLVED') || error.message?.includes('Failed to fetch')) {
+        setRegistrationError('Error de conexión. Verifica tu conexión a internet o si el servidor de Supabase está disponible.');
+      } else {
+        setRegistrationError(error.message || 'Ha ocurrido un error durante el registro. Por favor, intenta nuevamente.');
+      }
+    }
   };
 
   return (
@@ -55,6 +69,14 @@ const RegisterForm = () => {
           Únete a CalenConnect y comienza a gestionar tus citas
         </p>
       </div>
+      
+      {registrationError && (
+        <Alert variant="destructive" className="mb-4">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Error</AlertTitle>
+          <AlertDescription>{registrationError}</AlertDescription>
+        </Alert>
+      )}
       
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">

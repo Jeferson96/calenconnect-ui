@@ -27,12 +27,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   useEffect(() => {
     // Check for active session on mount
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (error) {
+        console.error('Session fetch error:', error);
+        setAuthState((prev) => ({ ...prev, loading: false }));
+        return;
+      }
+      
       if (session) {
         fetchUserProfile(session);
       } else {
         setAuthState((prev) => ({ ...prev, loading: false }));
       }
+    }).catch(error => {
+      console.error('Unexpected error fetching session:', error);
+      setAuthState((prev) => ({ ...prev, loading: false }));
     });
 
     // Listen for auth changes
@@ -57,15 +66,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .eq('id', session.user.id)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Profile fetch error:', error);
+        setAuthState({
+          user: {
+            id: session.user.id,
+            email: session.user.email || '',
+            role: 'PATIENT',
+            created_at: session.user.created_at
+          },
+          session,
+          loading: false,
+        });
+        return;
+      }
 
       const user: User = {
         id: session.user.id,
         email: session.user.email || '',
-        role: data.role || 'PATIENT',
-        first_name: data.first_name,
-        last_name: data.last_name,
-        created_at: data.created_at || session.user.created_at,
+        role: data?.role || 'PATIENT',
+        first_name: data?.first_name,
+        last_name: data?.last_name,
+        created_at: data?.created_at || session.user.created_at,
       };
 
       setAuthState({
@@ -75,7 +97,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
     } catch (error) {
       console.error('Error fetching user profile:', error);
-      setAuthState((prev) => ({ ...prev, loading: false }));
+      setAuthState({
+        user: {
+          id: session.user.id,
+          email: session.user.email || '',
+          role: 'PATIENT',
+          created_at: session.user.created_at
+        },
+        session,
+        loading: false,
+      });
     }
   };
 
@@ -95,11 +126,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       navigate('/dashboard');
     } catch (error: any) {
       console.error('Sign in error:', error);
+      
+      // Mensajes más descriptivos por tipo de error
+      let errorMessage = 'Error al iniciar sesión. Por favor, intenta nuevamente.';
+      
+      if (error.message?.includes('Invalid login credentials')) {
+        errorMessage = 'Credenciales inválidas. Por favor, verifica tu email y contraseña.';
+      } else if (error.message?.includes('Failed to fetch') || error.message?.includes('ERR_NAME_NOT_RESOLVED')) {
+        errorMessage = 'Error de conexión. Verifica tu conexión a internet o si el servidor está disponible.';
+      }
+      
       toast({
         variant: 'destructive',
         title: 'Error al iniciar sesión',
-        description: error.message || 'Credenciales inválidas. Por favor, intenta nuevamente.',
+        description: errorMessage,
       });
+      
+      throw error; // Re-lanzamos el error para que pueda ser manejado por el componente
     }
   };
 
@@ -132,11 +175,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       navigate('/dashboard');
     } catch (error: any) {
       console.error('Sign up error:', error);
+      
+      // Mensajes más descriptivos por tipo de error
+      let errorMessage = 'No se pudo completar el registro. Por favor, intenta nuevamente.';
+      
+      if (error.message?.includes('already registered')) {
+        errorMessage = 'Este correo electrónico ya está registrado. Por favor, utiliza otro.';
+      } else if (error.message?.includes('Failed to fetch') || error.message?.includes('ERR_NAME_NOT_RESOLVED')) {
+        errorMessage = 'Error de conexión. Verifica tu conexión a internet o si el servidor está disponible.';
+      }
+      
       toast({
         variant: 'destructive',
         title: 'Error al registrarse',
-        description: error.message || 'No se pudo completar el registro. Por favor, intenta nuevamente.',
+        description: errorMessage,
       });
+      
+      throw error; // Re-lanzamos el error para que pueda ser manejado por el componente
     }
   };
 
@@ -154,6 +209,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         title: 'Error al cerrar sesión',
         description: error.message || 'No se pudo cerrar sesión. Por favor, intenta nuevamente.',
       });
+      throw error;
     }
   };
 
