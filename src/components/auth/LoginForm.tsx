@@ -56,7 +56,7 @@ const LoginForm = () => {
               <FormItem>
                 <FormLabel>Correo Electrónico</FormLabel>
                 <FormControl>
-                  <Input placeholder="ejemplo@correo.com" {...field} />
+                  <Input placeholder="john.wick@test.com" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

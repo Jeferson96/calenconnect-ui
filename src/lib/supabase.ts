@@ -1,4 +1,3 @@
-
 import { createClient } from '@supabase/supabase-js';
 
 // Valores por defecto para el proyecto calenconnect-db
@@ -40,8 +39,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 // Función para verificar la conexión
 export const checkSupabaseConnection = async (): Promise<boolean> => {
   try {
-    // Intentamos una operación simple para verificar la conexión
-    const { error } = await supabase.from('profiles').select('count', { count: 'exact', head: true });
+    const { data, error } = await supabase.auth.getSession();
     isSupabaseConnected = !error;
     return isSupabaseConnected;
   } catch (error) {

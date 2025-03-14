@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
@@ -60,53 +59,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const fetchUserProfile = async (session: Session) => {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', session.user.id)
-        .single();
-
-      if (error) {
-        console.error('Profile fetch error:', error);
-        setAuthState({
-          user: {
-            id: session.user.id,
-            email: session.user.email || '',
-            role: 'PATIENT',
-            created_at: session.user.created_at
-          },
-          session,
-          loading: false,
-        });
+      // En lugar de consultar la tabla profiles, usamos los datos del usuario de la sesión
+      const { user } = session;
+      
+      if (!user) {
+        setAuthState({ user: null, session: null, loading: false });
         return;
       }
-
-      const user: User = {
-        id: session.user.id,
-        email: session.user.email || '',
-        role: data?.role || 'PATIENT',
-        first_name: data?.first_name,
-        last_name: data?.last_name,
-        created_at: data?.created_at || session.user.created_at,
+      
+      // Extraer los datos del usuario de los metadatos
+      const userData = user.user_metadata || {};
+      
+      // Crear un objeto de usuario con los datos disponibles
+      const userProfile: User = {
+        id: user.id,
+        email: user.email || '',
+        firstName: userData.first_name || '',
+        lastName: userData.last_name || '',
       };
-
+      
+      // Actualizar el estado de autenticación
       setAuthState({
-        user,
+        user: userProfile,
         session,
         loading: false,
       });
+      
     } catch (error) {
-      console.error('Error fetching user profile:', error);
-      setAuthState({
-        user: {
-          id: session.user.id,
-          email: session.user.email || '',
-          role: 'PATIENT',
-          created_at: session.user.created_at
-        },
-        session,
-        loading: false,
-      });
+      console.error('Profile fetch error:', error);
+      // Registrar el error tanto en cliente como en servidor (si implementaste la función logSupabaseError)
+      // logSupabaseError('fetchUserProfile', error);
+      
+      // Actualizar el estado para indicar que no hay usuario autenticado
+      setAuthState({ user: null, session: null, loading: false });
     }
   };
 
@@ -124,15 +109,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
       
       navigate('/dashboard');
-    } catch (error: any) {
+    } catch (error: Error | unknown) {
       console.error('Sign in error:', error);
       
       // Mensajes más descriptivos por tipo de error
       let errorMessage = 'Error al iniciar sesión. Por favor, intenta nuevamente.';
       
-      if (error.message?.includes('Invalid login credentials')) {
+      if (error instanceof Error && error.message?.includes('Invalid login credentials')) {
         errorMessage = 'Credenciales inválidas. Por favor, verifica tu email y contraseña.';
-      } else if (error.message?.includes('Failed to fetch') || error.message?.includes('ERR_NAME_NOT_RESOLVED')) {
+      } else if (error instanceof Error && (error.message?.includes('Failed to fetch') || error.message?.includes('ERR_NAME_NOT_RESOLVED'))) {
         errorMessage = 'Error de conexión. Verifica tu conexión a internet o si el servidor está disponible.';
       }
       
@@ -148,50 +133,43 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signUp = async (email: string, password: string, firstName: string, lastName: string) => {
     try {
-      // 1. Create auth user
-      const { data: authData, error: authError } = await supabase.auth.signUp({
+      // Registrar el usuario en Supabase Auth
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
+        options: {
+          data: {
+            first_name: firstName,
+            last_name: lastName,
+          },
+        },
       });
 
-      if (authError) throw authError;
-      if (!authData.user) throw new Error('No se pudo crear el usuario');
+      if (error) throw error;
 
-      // 2. Create profile with PATIENT role
-      const { error: profileError } = await supabase.from('profiles').insert({
-        id: authData.user.id,
-        email,
-        first_name: firstName,
-        last_name: lastName,
-        role: 'PATIENT',
-      });
-
-      if (profileError) throw profileError;
-
-      sonnerToast.success('Registro exitoso', {
-        description: '¡Tu cuenta ha sido creada correctamente!',
-      });
-      
-      navigate('/dashboard');
-    } catch (error: any) {
-      console.error('Sign up error:', error);
-      
-      // Mensajes más descriptivos por tipo de error
-      let errorMessage = 'No se pudo completar el registro. Por favor, intenta nuevamente.';
-      
-      if (error.message?.includes('already registered')) {
-        errorMessage = 'Este correo electrónico ya está registrado. Por favor, utiliza otro.';
-      } else if (error.message?.includes('Failed to fetch') || error.message?.includes('ERR_NAME_NOT_RESOLVED')) {
-        errorMessage = 'Error de conexión. Verifica tu conexión a internet o si el servidor está disponible.';
+      // Por ahora, no intentamos crear un perfil en la tabla 'profiles'
+      // Solo actualizamos el estado con los datos del usuario
+      if (data.user) {
+        setAuthState({
+          user: {
+            id: data.user.id,
+            email: data.user.email || '',
+            firstName: firstName,
+            lastName: lastName,
+          },
+          session: data.session,
+          loading: false,
+        });
+        
+        // Opcional: Mostrar mensaje de éxito
+        toast({
+          title: "Cuenta creada con éxito",
+          description: "Se ha enviado un correo de confirmación a tu dirección de email.",
+        });
       }
-      
-      toast({
-        variant: 'destructive',
-        title: 'Error al registrarse',
-        description: errorMessage,
-      });
-      
-      throw error; // Re-lanzamos el error para que pueda ser manejado por el componente
+    } catch (error) {
+      console.error('Sign up error:', error);
+      throw error;
     }
   };
 
@@ -202,12 +180,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         description: 'Has cerrado sesión correctamente.',
       });
       navigate('/');
-    } catch (error: any) {
+    } catch (error: Error | unknown) {
       console.error('Sign out error:', error);
       toast({
         variant: 'destructive',
         title: 'Error al cerrar sesión',
-        description: error.message || 'No se pudo cerrar sesión. Por favor, intenta nuevamente.',
+        description: error instanceof Error ? error.message || 'No se pudo cerrar sesión. Por favor, intenta nuevamente.' : 'No se pudo cerrar sesión. Por favor, intenta nuevamente.',
       });
       throw error;
     }
