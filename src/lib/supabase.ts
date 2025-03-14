@@ -3,7 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 
 // Valores por defecto para el proyecto calenconnect-db
 // Estos valores deben ser reemplazados por las variables de entorno en producción
-const FALLBACK_SUPABASE_URL = 'https://calenconnect-db.supabase.co';
+const FALLBACK_SUPABASE_URL = 'https://dvbqvvgltduwpmkwhlcf.supabase.co';
 
 // IMPORTANTE: Debes reemplazar esta clave por tu clave anónima real de Supabase
 // La clave debe tener el formato correcto y ser válida para tu proyecto
