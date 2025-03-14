@@ -3,10 +3,13 @@ import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Menu, X } from "lucide-react";
+import { Link } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const { authState, signOut } = useAuth();
   
   useEffect(() => {
     const handleScroll = () => {
@@ -41,12 +44,35 @@ const Navbar = () => {
         </nav>
         
         <div className="hidden md:flex items-center space-x-4">
-          <Button variant="outline" className="border-secondary text-foreground hover:bg-secondary/10">
-            Iniciar Sesión
-          </Button>
-          <Button className="bg-secondary text-primary hover:bg-secondary/90">
-            Registrarse
-          </Button>
+          {authState.user ? (
+            <>
+              <Link to="/dashboard">
+                <Button variant="outline" className="border-secondary text-foreground hover:bg-secondary/10">
+                  Mi Dashboard
+                </Button>
+              </Link>
+              <Button 
+                variant="outline" 
+                className="border-secondary text-foreground hover:bg-secondary/10"
+                onClick={() => signOut()}
+              >
+                Cerrar Sesión
+              </Button>
+            </>
+          ) : (
+            <>
+              <Link to="/login">
+                <Button variant="outline" className="border-secondary text-foreground hover:bg-secondary/10">
+                  Iniciar Sesión
+                </Button>
+              </Link>
+              <Link to="/register">
+                <Button className="bg-secondary text-primary hover:bg-secondary/90">
+                  Registrarse
+                </Button>
+              </Link>
+            </>
+          )}
         </div>
         
         <button 
@@ -65,12 +91,38 @@ const Navbar = () => {
               <NavLinks onClick={() => setIsOpen(false)} />
             </nav>
             <div className="flex flex-col space-y-4 w-full max-w-xs">
-              <Button variant="outline" className="border-secondary text-foreground hover:bg-secondary/10 w-full">
-                Iniciar Sesión
-              </Button>
-              <Button className="bg-secondary text-primary hover:bg-secondary/90 w-full">
-                Registrarse
-              </Button>
+              {authState.user ? (
+                <>
+                  <Link to="/dashboard" onClick={() => setIsOpen(false)}>
+                    <Button variant="outline" className="border-secondary text-foreground hover:bg-secondary/10 w-full">
+                      Mi Dashboard
+                    </Button>
+                  </Link>
+                  <Button 
+                    variant="outline" 
+                    className="border-secondary text-foreground hover:bg-secondary/10 w-full"
+                    onClick={() => {
+                      signOut();
+                      setIsOpen(false);
+                    }}
+                  >
+                    Cerrar Sesión
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Link to="/login" onClick={() => setIsOpen(false)}>
+                    <Button variant="outline" className="border-secondary text-foreground hover:bg-secondary/10 w-full">
+                      Iniciar Sesión
+                    </Button>
+                  </Link>
+                  <Link to="/register" onClick={() => setIsOpen(false)}>
+                    <Button className="bg-secondary text-primary hover:bg-secondary/90 w-full">
+                      Registrarse
+                    </Button>
+                  </Link>
+                </>
+              )}
             </div>
           </div>
         </div>
