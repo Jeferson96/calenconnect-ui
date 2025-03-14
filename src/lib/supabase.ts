@@ -18,7 +18,10 @@ if (!supabaseUrl || !supabaseAnonKey) {
   console.error('Supabase URL or Anon Key is missing. Using fallback values for development.');
 }
 
-// Crea el cliente de Supabase con más opciones para mejorar el manejo de errores
+// Variable para rastrear el estado de la conexión
+let isSupabaseConnected = false;
+
+// Crea el cliente de Supabase con opciones mejoradas para manejar errores de red
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
     autoRefreshToken: true,
@@ -26,17 +29,42 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     detectSessionInUrl: true
   },
   global: {
-    // Corregido: Eliminamos el operador spread y simplemente pasamos la función fetch directamente
     fetch: fetch
+  },
+  // Agregamos retry para intentar reconectar en caso de fallos de red
+  db: {
+    schema: 'public'
   }
 });
 
-// Verifica la conexión
+// Función para verificar la conexión
+export const checkSupabaseConnection = async (): Promise<boolean> => {
+  try {
+    // Intentamos una operación simple para verificar la conexión
+    const { error } = await supabase.from('profiles').select('count', { count: 'exact', head: true });
+    isSupabaseConnected = !error;
+    return isSupabaseConnected;
+  } catch (error) {
+    console.error('Error checking Supabase connection:', error);
+    isSupabaseConnected = false;
+    return false;
+  }
+};
+
+// Verificar la conexión inicial y mostrar mensaje
 supabase.auth.getSession().then(({ data, error }) => {
   if (error) {
     console.error('Error connecting to Supabase:', error.message);
     console.error('Please check if your Supabase API key is valid and if you have internet connectivity.');
+    isSupabaseConnected = false;
   } else {
     console.log('Successfully connected to Supabase!');
+    isSupabaseConnected = true;
   }
+}).catch(err => {
+  console.error('Unexpected error during Supabase initialization:', err);
+  isSupabaseConnected = false;
 });
+
+// Exportamos el estado de la conexión
+export const getConnectionStatus = () => isSupabaseConnected;

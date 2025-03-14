@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -16,7 +16,8 @@ import {
 import { useAuth } from '@/contexts/AuthContext';
 import { Link } from 'react-router-dom';
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, WifiOff } from "lucide-react";
+import { checkSupabaseConnection, getConnectionStatus } from '@/lib/supabase';
 
 const registerSchema = z.object({
   firstName: z.string().min(2, 'El nombre debe tener al menos 2 caracteres'),
@@ -34,6 +35,8 @@ type RegisterFormValues = z.infer<typeof registerSchema>;
 const RegisterForm = () => {
   const { signUp } = useAuth();
   const [registrationError, setRegistrationError] = useState<string | null>(null);
+  const [isCheckingConnection, setIsCheckingConnection] = useState<boolean>(false);
+  const [connectionStatus, setConnectionStatus] = useState<boolean>(getConnectionStatus());
   
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
@@ -46,15 +49,57 @@ const RegisterForm = () => {
     },
   });
 
+  // Verificamos la conexión cuando se monta el componente
+  useEffect(() => {
+    const verifyConnection = async () => {
+      setIsCheckingConnection(true);
+      const isConnected = await checkSupabaseConnection();
+      setConnectionStatus(isConnected);
+      setIsCheckingConnection(false);
+      
+      if (!isConnected) {
+        setRegistrationError('No se pudo conectar con el servidor. Por favor, verifica tu conexión a internet y vuelve a intentarlo.');
+      }
+    };
+    
+    verifyConnection();
+  }, []);
+
+  const handleRetryConnection = async () => {
+    setIsCheckingConnection(true);
+    setRegistrationError(null);
+    const isConnected = await checkSupabaseConnection();
+    setConnectionStatus(isConnected);
+    setIsCheckingConnection(false);
+    
+    if (!isConnected) {
+      setRegistrationError('No se pudo conectar con el servidor. Por favor, verifica tu conexión a internet y vuelve a intentarlo.');
+    } else {
+      setRegistrationError(null);
+    }
+  };
+
   const onSubmit = async (values: RegisterFormValues) => {
     try {
       setRegistrationError(null);
+      
+      // Verificamos la conexión antes de intentar registrar
+      const isConnected = await checkSupabaseConnection();
+      if (!isConnected) {
+        setRegistrationError('No hay conexión con el servidor. Por favor, verifica tu conexión a internet y vuelve a intentarlo.');
+        return;
+      }
+      
       await signUp(values.email, values.password, values.firstName, values.lastName);
     } catch (error: any) {
       console.error('Form submission error:', error);
       // Manejar errores específicos de conexión
-      if (error.message?.includes('ERR_NAME_NOT_RESOLVED') || error.message?.includes('Failed to fetch')) {
-        setRegistrationError('Error de conexión. Verifica tu conexión a internet o si el servidor de Supabase está disponible.');
+      if (error.message?.includes('ERR_NAME_NOT_RESOLVED') || 
+          error.message?.includes('Failed to fetch') ||
+          error.message?.includes('Network Error')) {
+        setRegistrationError('Error de conexión. No se pudo acceder al servidor de Supabase. Verifica tu conexión a internet o si el servidor está disponible.');
+      } else if (error.message?.includes('already registered')) {
+        setRegistrationError('Este correo electrónico ya está registrado. Por favor, utiliza otro o intenta iniciar sesión.');
       } else {
         setRegistrationError(error.message || 'Ha ocurrido un error durante el registro. Por favor, intenta nuevamente.');
       }
@@ -69,6 +114,25 @@ const RegisterForm = () => {
           Únete a CalenConnect y comienza a gestionar tus citas
         </p>
       </div>
+      
+      {!connectionStatus && (
+        <Alert variant="destructive" className="mb-4">
+          <WifiOff className="h-4 w-4" />
+          <AlertTitle>Sin conexión</AlertTitle>
+          <AlertDescription>
+            No se puede establecer conexión con el servidor.
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="ml-2 mt-2" 
+              onClick={handleRetryConnection}
+              disabled={isCheckingConnection}
+            >
+              {isCheckingConnection ? 'Verificando...' : 'Reintentar'}
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
       
       {registrationError && (
         <Alert variant="destructive" className="mb-4">
@@ -152,7 +216,11 @@ const RegisterForm = () => {
             )}
           />
           
-          <Button type="submit" className="w-full mt-6" disabled={form.formState.isSubmitting}>
+          <Button 
+            type="submit" 
+            className="w-full mt-6" 
+            disabled={form.formState.isSubmitting || !connectionStatus}
+          >
             {form.formState.isSubmitting ? 'Creando cuenta...' : 'Registrarse'}
           </Button>
           
