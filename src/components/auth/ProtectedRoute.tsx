@@ -1,15 +1,16 @@
 
+import React from 'react';
+import { Navigate, Outlet } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
-import { Navigate, Outlet, useLocation } from 'react-router-dom';
 
-interface ProtectedRouteProps {
-  requiredRole?: string[];
-}
-
-const ProtectedRoute = ({ requiredRole }: ProtectedRouteProps) => {
+/**
+ * Componente para proteger rutas que requieren autenticación
+ * Redirige a la página de login si el usuario no está autenticado
+ */
+const ProtectedRoute = () => {
   const { authState } = useAuth();
-  const location = useLocation();
 
+  // Mientras se verifica la autenticación, mostramos un loader
   if (authState.loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -18,14 +19,12 @@ const ProtectedRoute = ({ requiredRole }: ProtectedRouteProps) => {
     );
   }
 
+  // Si no hay usuario, redirigimos al login
   if (!authState.user) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    return <Navigate to="/login" replace />;
   }
 
-  if (requiredRole && !requiredRole.includes(authState.user.role)) {
-    return <Navigate to="/unauthorized" replace />;
-  }
-
+  // Si hay usuario, renderizamos el contenido protegido
   return <Outlet />;
 };
 

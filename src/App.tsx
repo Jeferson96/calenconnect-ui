@@ -12,8 +12,20 @@ import Dashboard from "./pages/Dashboard";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
+import AppointmentsPage from "./pages/AppointmentsPage";
+import AppointmentDetail from "./pages/AppointmentDetail";
+import NewAppointment from "./pages/NewAppointment";
+import AvailabilityPage from "./pages/AvailabilityPage";
+import ProfilePage from "./pages/ProfilePage";
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      staleTime: 5 * 60 * 1000, // 5 minutes
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -32,6 +44,11 @@ const App = () => (
               {/* Protected routes */}
               <Route element={<ProtectedRoute />}>
                 <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/dashboard/appointments" element={<AppointmentsPage />} />
+                <Route path="/dashboard/appointments/:id" element={<AppointmentDetail />} />
+                <Route path="/dashboard/appointments/new" element={<NewAppointment />} />
+                <Route path="/dashboard/availability" element={<AvailabilityPage />} />
+                <Route path="/dashboard/profile" element={<ProfilePage />} />
               </Route>
               
               {/* Catch-all route */}
