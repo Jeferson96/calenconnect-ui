@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Navigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { CalendarIcon, ClockIcon, UserIcon, LogOutIcon } from 'lucide-react';
+import ThemeToggle from '@/components/theme/ThemeToggle';
 
 const Dashboard = () => {
   const { authState, signOut } = useAuth();
@@ -33,6 +34,7 @@ const Dashboard = () => {
           </div>
           
           <div className="flex items-center space-x-4">
+            <ThemeToggle />
             <span className="text-sm text-muted-foreground hidden md:inline-block">
               Hola, {authState.user?.firstName || 'Usuario'}
             </span>
