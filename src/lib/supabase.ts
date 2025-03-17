@@ -6,7 +6,7 @@ const FALLBACK_SUPABASE_URL = 'https://dvbqvvgltduwpmkwhlcf.supabase.co';
 
 // IMPORTANTE: Debes reemplazar esta clave por tu clave anónima real de Supabase
 // La clave debe tener el formato correcto y ser válida para tu proyecto
-const FALLBACK_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNhbGVuY29ubmVjdC1kYiIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzE4ODQ1MjAwLCJleHAiOjIwMzQ0MjEyMDB9.W0YtIbBQZ4BFZXqbBjV-GWrpDNmWg9vUFbPjArhOVKs';
+const FALLBACK_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImR2YnF2dmdsdGR1d3Bta3dobGNmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDA5MzcyMTMsImV4cCI6MjA1NjUxMzIxM30.v3aGxMCUXIaVpXC_9TzTPE_jnnLPNfInhE8UDYFhX14';
 
 // Utiliza las variables de entorno si están disponibles, de lo contrario usa los valores por defecto
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || FALLBACK_SUPABASE_URL;

@@ -1,10 +1,21 @@
-
 import React, { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { CalendarCheck, Clock, ArrowRight } from "lucide-react";
 
 const Hero = () => {
   const elementsRef = useRef<(HTMLDivElement | null)[]>([]);
+
+  // Función para obtener el mes y año actual en español
+  const getCurrentMonthYear = () => {
+    const date = new Date();
+    const monthNames = [
+      "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
+      "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
+    ];
+    const month = monthNames[date.getMonth()];
+    const year = date.getFullYear();
+    return `${month} ${year}`;
+  };
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -89,7 +100,7 @@ const Hero = () => {
               <div className="flex items-center justify-between mb-8">
                 <div>
                   <h3 className="font-semibold text-lg">Calendario de Citas</h3>
-                  <p className="text-sm text-muted-foreground">Marzo 2023</p>
+                  <p className="text-sm text-muted-foreground">{getCurrentMonthYear()}</p>
                 </div>
                 <CalendarCheck className="text-secondary h-6 w-6" />
               </div>

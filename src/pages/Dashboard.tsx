@@ -34,7 +34,7 @@ const Dashboard = () => {
           
           <div className="flex items-center space-x-4">
             <span className="text-sm text-muted-foreground hidden md:inline-block">
-              Hola, {authState.user?.first_name || 'Usuario'}
+              Hola, {authState.user?.firstName || 'Usuario'}
             </span>
             <Button variant="outline" size="sm" onClick={signOut}>
               <LogOutIcon className="h-4 w-4 mr-2" />
@@ -45,7 +45,7 @@ const Dashboard = () => {
       </header>
       
       <main className="container mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold mb-6">Dashboard de {authState.user?.first_name} {authState.user?.last_name}</h1>
+        <h1 className="text-2xl font-bold mb-6">Dashboard de {authState.user?.firstName} {authState.user?.lastName}</h1>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="bg-card p-6 rounded-lg shadow-sm">
@@ -72,9 +72,8 @@ const Dashboard = () => {
               <h2 className="text-lg font-semibold">Mi Perfil</h2>
             </div>
             <div className="space-y-2">
-              <p><span className="font-medium">Nombre:</span> {authState.user?.first_name} {authState.user?.last_name}</p>
+              <p><span className="font-medium">Nombre:</span> {authState.user?.firstName} {authState.user?.lastName}</p>
               <p><span className="font-medium">Email:</span> {authState.user?.email}</p>
-              <p><span className="font-medium">Rol:</span> {authState.user?.role === 'PATIENT' ? 'Paciente' : 'Profesional'}</p>
             </div>
             <Button variant="outline" className="w-full mt-4">Editar Perfil</Button>
           </div>
