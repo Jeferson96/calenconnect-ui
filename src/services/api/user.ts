@@ -1,5 +1,6 @@
 
 import api from '@/lib/axios';
+import { ApiResponse, UserStatistics } from '@/types/api';
 
 // Interfaces para modelado del dominio
 interface User {
@@ -24,14 +25,14 @@ interface UserProfile {
 const userService = {
   // Obtener perfil del usuario actual
   getProfile: async (): Promise<User> => {
-    const response = await api.get('/users/profile');
-    return response.data;
+    const response = await api.get<ApiResponse<User>>('/users/profile');
+    return response.data.data;
   },
   
   // Actualizar perfil del usuario
   updateProfile: async (data: Partial<UserProfile>): Promise<User> => {
-    const response = await api.put('/users/profile', data);
-    return response.data;
+    const response = await api.put<ApiResponse<User>>('/users/profile', data);
+    return response.data.data;
   },
   
   // Cambiar contraseña
@@ -40,6 +41,12 @@ const userService = {
       currentPassword,
       newPassword
     });
+  },
+  
+  // Obtener estadísticas del usuario
+  getStatistics: async (userId: string): Promise<UserStatistics> => {
+    const response = await api.get<ApiResponse<UserStatistics>>(`/users/${userId}/statistics`);
+    return response.data.data;
   }
 };
 

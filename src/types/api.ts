@@ -58,3 +58,10 @@ export interface UpdateAppointmentRequest {
   appointmentDate?: string;
   status?: AppointmentStatus;
 }
+
+// Tipos para estadísticas de usuario
+export interface UserStatistics {
+  totalAppointments: number;
+  completedAppointments: number;
+  pendingAppointments: number;
+}

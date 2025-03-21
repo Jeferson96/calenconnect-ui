@@ -5,9 +5,11 @@ import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { UserIcon, MailIcon, CalendarIcon } from 'lucide-react';
+import { useUserStatistics } from '@/hooks/useUserStatistics';
 
 const ProfilePage = () => {
   const { authState } = useAuth();
+  const { statistics, isLoading } = useUserStatistics();
   
   return (
     <DashboardLayout>
@@ -66,29 +68,37 @@ const ProfilePage = () => {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">Citas Totales</span>
+              {isLoading ? (
+                <div className="py-4 flex justify-center">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-secondary"></div>
                 </div>
-                <span className="font-medium">0</span>
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">Citas Completadas</span>
-                </div>
-                <span className="font-medium">0</span>
-              </div>
-              
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-2">
-                  <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">Citas Pendientes</span>
-                </div>
-                <span className="font-medium">0</span>
-              </div>
+              ) : (
+                <>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm">Citas Totales</span>
+                    </div>
+                    <span className="font-medium">{statistics.totalAppointments}</span>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm">Citas Completadas</span>
+                    </div>
+                    <span className="font-medium">{statistics.completedAppointments}</span>
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-sm">Citas Pendientes</span>
+                    </div>
+                    <span className="font-medium">{statistics.pendingAppointments}</span>
+                  </div>
+                </>
+              )}
             </CardContent>
           </Card>
         </div>

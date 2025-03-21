@@ -1,59 +1,91 @@
 
 import React, { useEffect, useState } from 'react';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
-import { Button } from '@/components/ui/button';
-import { CalendarIcon, ArrowLeftIcon, UserIcon, ClockIcon } from 'lucide-react';
 import { appointmentsService } from '@/services/api';
 import { Appointment } from '@/types/api';
 import { formatDate } from '@/lib/utils';
 import { useToast } from '@/components/ui/use-toast';
-import { Link, useNavigate, useParams } from 'react-router-dom';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { ArrowLeftIcon, CalendarIcon, ClockIcon, UserIcon } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
+import { useUserStatistics } from '@/hooks/useUserStatistics';
+
+const getStatusColor = (status: string) => {
+  switch (status) {
+    case 'SCHEDULED':
+      return 'bg-blue-500';
+    case 'COMPLETED':
+      return 'bg-green-500';
+    case 'CANCELLED':
+      return 'bg-red-500';
+    default:
+      return 'bg-gray-500';
+  }
+};
+
+const getStatusText = (status: string) => {
+  switch (status) {
+    case 'SCHEDULED':
+      return 'Programada';
+    case 'COMPLETED':
+      return 'Completada';
+    case 'CANCELLED':
+      return 'Cancelada';
+    default:
+      return status;
+  }
+};
 
 const AppointmentDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast: uiToast } = useToast();
+  const { invalidateStatistics } = useUserStatistics();
+  
   const [appointment, setAppointment] = useState<Appointment | null>(null);
   const [loading, setLoading] = useState(true);
   
   useEffect(() => {
     const fetchAppointment = async () => {
+      if (!id) return;
+      
       try {
-        if (id) {
-          const result = await appointmentsService.getById(id);
-          setAppointment(result);
-        }
+        const result = await appointmentsService.getById(id);
+        setAppointment(result);
       } catch (error) {
         console.error('Error fetching appointment:', error);
         uiToast({
           variant: 'destructive',
           title: 'Error',
-          description: 'No se pudo cargar la información de la cita.',
+          description: 'No se pudo cargar la cita. Por favor, intenta de nuevo.',
         });
-        navigate('/dashboard/appointments');
       } finally {
         setLoading(false);
       }
     };
     
     fetchAppointment();
-  }, [id, navigate, uiToast]);
+  }, [id, uiToast]);
   
   const handleCancel = async () => {
+    if (!appointment) return;
+    
     try {
-      if (id) {
-        await appointmentsService.cancel(id);
-        toast.success('Cita cancelada correctamente');
-        // Actualizar el estado para reflejar la cancelación
-        if (appointment) {
-          setAppointment({
-            ...appointment,
-            status: 'CANCELLED'
-          });
-        }
-      }
+      await appointmentsService.cancel(appointment.id);
+      
+      // Invalidar la caché de estadísticas
+      invalidateStatistics();
+      
+      toast.success('Cita cancelada correctamente');
+      
+      // Actualizar la cita en el estado
+      setAppointment({
+        ...appointment,
+        status: 'CANCELLED'
+      });
     } catch (error) {
       console.error('Error cancelling appointment:', error);
       uiToast({
@@ -64,31 +96,11 @@ const AppointmentDetail = () => {
     }
   };
   
-  // Determinar color según el estado
-  const getStatusDetails = () => {
-    if (!appointment) return { color: '', text: '' };
-    
-    const statusColor = {
-      SCHEDULED: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
-      COMPLETED: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
-      CANCELLED: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300"
-    }[appointment.status];
-    
-    const statusText = {
-      SCHEDULED: "Programada",
-      COMPLETED: "Completada",
-      CANCELLED: "Cancelada"
-    }[appointment.status];
-    
-    return { color: statusColor, text: statusText };
-  };
-  
   if (loading) {
     return (
       <DashboardLayout>
-        <div className="p-8 text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-secondary mx-auto"></div>
-          <p className="mt-2 text-sm text-muted-foreground">Cargando información de la cita...</p>
+        <div className="flex items-center justify-center h-[calc(100vh-200px)]">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
         </div>
       </DashboardLayout>
     );
@@ -97,17 +109,16 @@ const AppointmentDetail = () => {
   if (!appointment) {
     return (
       <DashboardLayout>
-        <div className="p-8 text-center">
-          <p className="text-lg font-medium">Cita no encontrada</p>
+        <div className="text-center">
+          <h2 className="text-xl font-bold mb-2">Cita no encontrada</h2>
+          <p className="text-muted-foreground mb-4">La cita que buscas no existe o no tienes acceso a ella.</p>
           <Link to="/dashboard/appointments">
-            <Button className="mt-4">Volver a Mis Citas</Button>
+            <Button>Volver a mis citas</Button>
           </Link>
         </div>
       </DashboardLayout>
     );
   }
-  
-  const { color, text } = getStatusDetails();
   
   return (
     <DashboardLayout>
@@ -124,47 +135,49 @@ const AppointmentDetail = () => {
         
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <span>Cita para {formatDate(appointment.appointmentDate)}</span>
-              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${color}`}>
-                {text}
-              </span>
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle>Cita #{appointment.id.slice(0, 8)}</CardTitle>
+              <Badge className={getStatusColor(appointment.status)}>
+                {getStatusText(appointment.status)}
+              </Badge>
+            </div>
             <CardDescription>
-              Información detallada de tu cita médica
+              Información detallada de tu cita programada
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <div className="flex items-center space-x-2 text-sm">
-                  <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-                  <span className="font-medium">Fecha y Hora:</span>
+              <div className="flex flex-col space-y-1">
+                <span className="text-sm font-medium text-muted-foreground">Fecha y Hora</span>
+                <div className="flex items-center border p-3 rounded-md">
+                  <CalendarIcon className="h-4 w-4 mr-2 text-muted-foreground" />
                   <span>{formatDate(appointment.appointmentDate)}</span>
                 </div>
-                
-                <div className="flex items-center space-x-2 text-sm">
-                  <UserIcon className="h-4 w-4 text-muted-foreground" />
-                  <span className="font-medium">ID del Profesional:</span>
-                  <span>{appointment.professionalId}</span>
-                </div>
-                
-                <div className="flex items-center space-x-2 text-sm">
-                  <ClockIcon className="h-4 w-4 text-muted-foreground" />
-                  <span className="font-medium">Creada:</span>
-                  <span>{formatDate(appointment.createdAt)}</span>
+              </div>
+              
+              <div className="flex flex-col space-y-1">
+                <span className="text-sm font-medium text-muted-foreground">Profesional</span>
+                <div className="flex items-center border p-3 rounded-md">
+                  <UserIcon className="h-4 w-4 mr-2 text-muted-foreground" />
+                  <span>Dr. {appointment.professionalId.slice(0, 8)}</span>
                 </div>
               </div>
             </div>
             
-            {appointment.status === 'SCHEDULED' && (
-              <div className="flex justify-end space-x-2 mt-6">
-                <Button variant="destructive" onClick={handleCancel}>
-                  Cancelar Cita
-                </Button>
+            <div className="flex flex-col space-y-1">
+              <span className="text-sm font-medium text-muted-foreground">ID de la Cita</span>
+              <div className="flex items-center border p-3 rounded-md">
+                <span className="font-mono text-sm">{appointment.id}</span>
               </div>
-            )}
+            </div>
           </CardContent>
+          <CardFooter className="flex justify-end space-x-2">
+            {appointment.status === 'SCHEDULED' && (
+              <Button variant="destructive" onClick={handleCancel}>
+                Cancelar Cita
+              </Button>
+            )}
+          </CardFooter>
         </Card>
       </div>
     </DashboardLayout>

@@ -3,10 +3,12 @@
 import appointmentsService from './appointments';
 import userService from './user';
 import availabilityService from './availability';
+import professionalsService from './professionals';
 
 // Exportamos todos los servicios para un fácil acceso
 export {
   appointmentsService,
   userService,
   availabilityService,
+  professionalsService,
 };

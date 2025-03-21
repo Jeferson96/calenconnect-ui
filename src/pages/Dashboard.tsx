@@ -10,10 +10,13 @@ import { formatDate } from '@/lib/utils';
 import { useToast } from '@/components/ui/use-toast';
 import { Link } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useUserStatistics } from '@/hooks/useUserStatistics';
 
 const Dashboard = () => {
   const { authState } = useAuth();
   const { toast } = useToast();
+  const { statistics } = useUserStatistics();
+  
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
   
@@ -53,7 +56,7 @@ const Dashboard = () => {
         <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
           <StatsCard 
             title="Citas Programadas" 
-            value={loading ? "..." : appointments.length.toString()} 
+            value={loading ? "..." : statistics.pendingAppointments.toString()} 
             icon={<CalendarIcon className="h-5 w-5 text-blue-500" />}
             description="Citas pendientes"
           />
@@ -66,10 +69,10 @@ const Dashboard = () => {
           />
           
           <StatsCard 
-            title="Mi Perfil" 
-            value={authState.user ? "Completo" : "Incompleto"} 
+            title="Citas Completadas" 
+            value={statistics.completedAppointments.toString()} 
             icon={<UserIcon className="h-5 w-5 text-purple-500" />}
-            description="Estado de la información"
+            description="Historial de citas"
           />
         </div>
         
