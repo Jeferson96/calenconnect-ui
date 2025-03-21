@@ -237,15 +237,49 @@ El sistema es un **MVP** para la gestión de citas entre **pacientes** y **profe
 - 🔹 **Control de acceso basado en roles**, restringiendo pantallas según permisos.  
 
 ---
-  
-
-
-#### 🔹 IA:
-
-
----
 
 #### 🔹 Usuario: 
+
+## **Objetivo**
+
+El proyecto ya cuenta con un sistema de registro y login. Ahora, es necesario desarrollar nuevas funcionalidades siguiendo un orden estructurado.
+
+## **Requisitos Técnicos**
+
+### **Framework y Buenas Prácticas**
+
+-   El proyecto debe desarrollarse en **Next.js**, asegurando el cumplimiento de sus mejores prácticas.
+-   La implementación debe adherirse a principios y arquitecturas establecidas:
+    -   **Diseño Dirigido por el Dominio (DDD)**
+    -   **Arquitectura Hexagonal**
+    -   **Vertical Slicing**
+    -   **Screaming Architecture**
+    -   **Clean Architecture**
+    -   **Principios SOLID y DRY**
+
+### **Modo Oscuro/Claro**
+
+-   Se debe implementar una opción de **modo oscuro/claro**, respetando el estilo visual ya definido.
+-   El diseño debe ser visualmente atractivo y coherente con la experiencia de usuario.
+
+### **Dashboard y Consumo de API**
+
+-   Ajustar el **dashboard** y desarrollar las páginas y componentes necesarios para la integración con el backend.
+-   Las peticiones HTTP deben realizarse con **Axios**.
+-   Los datos sensibles como URL y otras constantes deben almacenarse en **variables de entorno**, estableciendo una **URL por defecto**.
+-   Se proporcionará un **JSON exportado desde Postman**, que contiene:
+    -   Servicios disponibles en el backend.
+    -   Estructura del payload.
+    -   Ejemplos de peticiones exitosas.
+-   A partir de esta información, se debe implementar la lógica necesaria para interactuar con la API.
+-   Es obligatorio seguir **buenas prácticas de diseño y maquetación**.
+
+### **Diseño y Referencias**
+
+-   Se adjunta una imagen de referencia para la estructura del dashboard.
+-   Esta imagen solo sirve como guía; sin embargo, es **obligatorio respetar el manual de marca establecido**.
+
+
 
 
 ---

@@ -2,7 +2,7 @@
 import axios from 'axios';
 
 // URL base por defecto (se puede sobreescribir con variables de entorno)
-const DEFAULT_API_URL = 'http://localhost:3000/api';
+const DEFAULT_API_URL = 'http://localhost:3000';
 
 // Crear una instancia de axios con la configuración base
 const api = axios.create({
