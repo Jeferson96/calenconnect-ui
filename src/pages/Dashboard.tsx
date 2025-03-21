@@ -1,49 +1,21 @@
-
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { CalendarIcon, ClockIcon, UserIcon } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { appointmentsService } from '@/services/api';
 import { Appointment } from '@/types/api';
 import { formatDate } from '@/lib/utils';
-import { useToast } from '@/components/ui/use-toast';
 import { Link } from 'react-router-dom';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useUserStatistics } from '@/hooks/useUserStatistics';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useAppointments } from '@/contexts/AppointmentsContext';
 
 const Dashboard = () => {
   const { authState } = useAuth();
-  const { toast } = useToast();
-  const { statistics } = useUserStatistics();
-  
-  const [appointments, setAppointments] = useState<Appointment[]>([]);
-  const [loading, setLoading] = useState(true);
-  
-  useEffect(() => {
-    const fetchAppointments = async () => {
-      try {
-        if (authState.user) {
-          const result = await appointmentsService.getAll({ 
-            patientId: authState.user.id,
-            status: 'SCHEDULED'
-          });
-          setAppointments(result);
-        }
-      } catch (error) {
-        console.error('Error fetching appointments:', error);
-        toast({
-          variant: 'destructive',
-          title: 'Error',
-          description: 'No se pudieron cargar las citas. Por favor, intenta de nuevo.',
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    fetchAppointments();
-  }, [authState.user, toast]);
+  const { 
+    upcomingAppointments, 
+    statistics, 
+    loading 
+  } = useAppointments();
   
   return (
     <DashboardLayout>
@@ -63,14 +35,14 @@ const Dashboard = () => {
           
           <StatsCard 
             title="Próxima Cita" 
-            value={loading ? "..." : (appointments.length > 0 ? formatDate(appointments[0].appointmentDate) : "No hay citas")} 
+            value={loading ? "..." : (upcomingAppointments.length > 0 ? formatDate(upcomingAppointments[0].appointmentDate) : "No hay citas")} 
             icon={<ClockIcon className="h-5 w-5 text-green-500" />}
             description="Fecha más próxima"
           />
           
           <StatsCard 
             title="Citas Completadas" 
-            value={statistics.completedAppointments.toString()} 
+            value={loading ? "..." : statistics.completedAppointments.toString()} 
             icon={<UserIcon className="h-5 w-5 text-purple-500" />}
             description="Historial de citas"
           />
@@ -89,9 +61,9 @@ const Dashboard = () => {
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-secondary mx-auto"></div>
               <p className="mt-2 text-sm text-muted-foreground">Cargando citas...</p>
             </div>
-          ) : appointments.length > 0 ? (
+          ) : upcomingAppointments.length > 0 ? (
             <div className="space-y-4">
-              {appointments.slice(0, 3).map((appointment) => (
+              {upcomingAppointments.slice(0, 3).map((appointment) => (
                 <AppointmentCard key={appointment.id} appointment={appointment} />
               ))}
             </div>
@@ -133,20 +105,40 @@ interface AppointmentCardProps {
   appointment: Appointment;
 }
 
-const AppointmentCard = ({ appointment }: AppointmentCardProps) => (
-  <div className="bg-card border border-border rounded-lg p-4 flex justify-between items-center">
-    <div>
-      <h3 className="font-medium">{formatDate(appointment.appointmentDate)}</h3>
-      <p className="text-sm text-muted-foreground">Cita programada</p>
+const AppointmentCard = ({ appointment }: AppointmentCardProps) => {
+  // Determinar color según el estado
+  const statusColor = {
+    SCHEDULED: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
+    COMPLETED: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
+    CANCELLED: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300"
+  }[appointment.status];
+  
+  // Texto del estado
+  const statusText = {
+    SCHEDULED: "Programada",
+    COMPLETED: "Completada",
+    CANCELLED: "Cancelada"
+  }[appointment.status];
+  
+  return (
+    <div className="bg-card border border-border rounded-lg p-4 flex justify-between items-center">
+      <div>
+        <h3 className="font-medium">{formatDate(appointment.appointmentDate)}</h3>
+        <div className="flex items-center mt-2">
+          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusColor}`}>
+            {statusText}
+          </span>
+        </div>
+      </div>
+      <div className="flex space-x-2">
+        <Button variant="outline" size="sm" asChild>
+          <Link to={`/dashboard/appointments/${appointment.id}`}>
+            Ver Detalles
+          </Link>
+        </Button>
+      </div>
     </div>
-    <div className="flex space-x-2">
-      <Button variant="outline" size="sm" asChild>
-        <Link to={`/dashboard/appointments/${appointment.id}`}>
-          Ver Detalles
-        </Link>
-      </Button>
-    </div>
-  </div>
-);
+  );
+};
 
 export default Dashboard;

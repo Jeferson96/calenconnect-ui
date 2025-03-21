@@ -1,8 +1,6 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
-import { appointmentsService } from '@/services/api';
 import { Appointment } from '@/types/api';
 import { formatDate } from '@/lib/utils';
 import { useToast } from '@/components/ui/use-toast';
@@ -11,7 +9,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { ArrowLeftIcon, CalendarIcon, ClockIcon, UserIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { useUserStatistics } from '@/hooks/useUserStatistics';
+import { useAppointments } from '@/contexts/AppointmentsContext';
 
 const getStatusColor = (status: string) => {
   switch (status) {
@@ -43,45 +41,38 @@ const AppointmentDetail = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { toast: uiToast } = useToast();
-  const { invalidateStatistics } = useUserStatistics();
+  const { appointments, cancelAppointment, loading: appLoading } = useAppointments();
   
   const [appointment, setAppointment] = useState<Appointment | null>(null);
   const [loading, setLoading] = useState(true);
   
+  // Obtener la cita específica del contexto global
   useEffect(() => {
-    const fetchAppointment = async () => {
-      if (!id) return;
-      
-      try {
-        const result = await appointmentsService.getById(id);
-        setAppointment(result);
-      } catch (error) {
-        console.error('Error fetching appointment:', error);
-        uiToast({
-          variant: 'destructive',
-          title: 'Error',
-          description: 'No se pudo cargar la cita. Por favor, intenta de nuevo.',
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
+    if (!id || appLoading) return;
     
-    fetchAppointment();
-  }, [id, uiToast]);
+    const foundAppointment = appointments.find(app => app.id === id);
+    if (foundAppointment) {
+      setAppointment(foundAppointment);
+    } else {
+      uiToast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'No se pudo encontrar la cita solicitada.',
+      });
+    }
+    
+    setLoading(false);
+  }, [id, appointments, appLoading, uiToast]);
   
   const handleCancel = async () => {
     if (!appointment) return;
     
     try {
-      await appointmentsService.cancel(appointment.id);
-      
-      // Invalidar la caché de estadísticas
-      invalidateStatistics();
+      await cancelAppointment(appointment.id);
       
       toast.success('Cita cancelada correctamente');
       
-      // Actualizar la cita en el estado
+      // Actualizar la cita en el estado local
       setAppointment({
         ...appointment,
         status: 'CANCELLED'
@@ -96,7 +87,7 @@ const AppointmentDetail = () => {
     }
   };
   
-  if (loading) {
+  if (loading || appLoading) {
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center h-[calc(100vh-200px)]">

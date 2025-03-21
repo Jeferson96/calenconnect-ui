@@ -1,49 +1,59 @@
-
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import { Button } from '@/components/ui/button';
-import { CalendarIcon, PlusIcon } from 'lucide-react';
+import { PlusIcon } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { appointmentsService } from '@/services/api';
 import { Appointment } from '@/types/api';
 import { formatDate } from '@/lib/utils';
 import { useToast } from '@/components/ui/use-toast';
 import { Link } from 'react-router-dom';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useAppointments } from '@/contexts/AppointmentsContext';
 
 const AppointmentsPage = () => {
   const { authState } = useAuth();
   const { toast } = useToast();
-  const [appointments, setAppointments] = useState<Appointment[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { 
+    appointments, 
+    loading, 
+    cancelAppointment 
+  } = useAppointments();
   
-  useEffect(() => {
-    const fetchAppointments = async () => {
-      try {
-        if (authState.user) {
-          const result = await appointmentsService.getAll({ 
-            patientId: authState.user.id
-          });
-          setAppointments(result);
-        }
-      } catch (error) {
-        console.error('Error fetching appointments:', error);
-        toast({
-          variant: 'destructive',
-          title: 'Error',
-          description: 'No se pudieron cargar las citas. Por favor, intenta de nuevo.',
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Función para cancelar una cita
+  const handleCancelAppointment = async (appointmentId: string) => {
+    try {
+      await cancelAppointment(appointmentId);
+      
+      toast({
+        title: 'Cita cancelada',
+        description: 'La cita ha sido cancelada correctamente.',
+      });
+    } catch (error) {
+      console.error('Error cancelling appointment:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Error',
+        description: 'No se pudo cancelar la cita. Por favor, intenta de nuevo.',
+      });
+    }
+  };
+  
+  // Obtenemos la fecha actual sin tiempo (solo fecha)
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  // Filtrar citas por estado y fecha
+  const scheduledAppointments = appointments.filter(app => {
+    if (app.status !== 'SCHEDULED') return false;
     
-    fetchAppointments();
-  }, [authState.user, toast]);
+    // Solo incluimos citas de hoy o futuras
+    const appointmentDate = new Date(app.appointmentDate);
+    appointmentDate.setHours(0, 0, 0, 0);
+    return appointmentDate >= today;
+  }).sort((a, b) => 
+    new Date(a.appointmentDate).getTime() - new Date(b.appointmentDate).getTime()
+  );
   
-  // Filtrar citas por estado
-  const scheduledAppointments = appointments.filter(app => app.status === 'SCHEDULED');
   const completedAppointments = appointments.filter(app => app.status === 'COMPLETED');
   const cancelledAppointments = appointments.filter(app => app.status === 'CANCELLED');
   
@@ -87,7 +97,11 @@ const AppointmentsPage = () => {
             ) : scheduledAppointments.length > 0 ? (
               <div className="space-y-4">
                 {scheduledAppointments.map((appointment) => (
-                  <AppointmentCard key={appointment.id} appointment={appointment} />
+                  <AppointmentCard 
+                    key={appointment.id} 
+                    appointment={appointment} 
+                    onCancel={handleCancelAppointment}
+                  />
                 ))}
               </div>
             ) : (
@@ -109,7 +123,11 @@ const AppointmentsPage = () => {
             ) : completedAppointments.length > 0 ? (
               <div className="space-y-4">
                 {completedAppointments.map((appointment) => (
-                  <AppointmentCard key={appointment.id} appointment={appointment} />
+                  <AppointmentCard 
+                    key={appointment.id} 
+                    appointment={appointment} 
+                    onCancel={undefined}
+                  />
                 ))}
               </div>
             ) : (
@@ -128,7 +146,11 @@ const AppointmentsPage = () => {
             ) : cancelledAppointments.length > 0 ? (
               <div className="space-y-4">
                 {cancelledAppointments.map((appointment) => (
-                  <AppointmentCard key={appointment.id} appointment={appointment} />
+                  <AppointmentCard 
+                    key={appointment.id} 
+                    appointment={appointment} 
+                    onCancel={undefined}
+                  />
                 ))}
               </div>
             ) : (
@@ -145,9 +167,10 @@ const AppointmentsPage = () => {
 
 interface AppointmentCardProps {
   appointment: Appointment;
+  onCancel?: (appointmentId: string) => void;
 }
 
-const AppointmentCard = ({ appointment }: AppointmentCardProps) => {
+const AppointmentCard = ({ appointment, onCancel }: AppointmentCardProps) => {
   // Determinar color según el estado
   const statusColor = {
     SCHEDULED: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
@@ -178,8 +201,12 @@ const AppointmentCard = ({ appointment }: AppointmentCardProps) => {
             Ver Detalles
           </Link>
         </Button>
-        {appointment.status === 'SCHEDULED' && (
-          <Button variant="destructive" size="sm">
+        {appointment.status === 'SCHEDULED' && onCancel && (
+          <Button 
+            variant="destructive" 
+            size="sm"
+            onClick={() => onCancel(appointment.id)}
+          >
             Cancelar
           </Button>
         )}

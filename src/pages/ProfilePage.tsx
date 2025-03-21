@@ -1,15 +1,14 @@
-
 import React from 'react';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { UserIcon, MailIcon, CalendarIcon } from 'lucide-react';
-import { useUserStatistics } from '@/hooks/useUserStatistics';
+import { useAppointments } from '@/contexts/AppointmentsContext';
 
 const ProfilePage = () => {
   const { authState } = useAuth();
-  const { statistics, isLoading } = useUserStatistics();
+  const { statistics, loading } = useAppointments();
   
   return (
     <DashboardLayout>
@@ -68,7 +67,7 @@ const ProfilePage = () => {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              {isLoading ? (
+              {loading ? (
                 <div className="py-4 flex justify-center">
                   <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-secondary"></div>
                 </div>

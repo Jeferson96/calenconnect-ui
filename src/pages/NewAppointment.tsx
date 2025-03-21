@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import { Button } from '@/components/ui/button';
@@ -15,7 +14,7 @@ import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Calendar } from '@/components/ui/calendar';
 import { Professional } from '@/services/api/professionals';
-import { useUserStatistics } from '@/hooks/useUserStatistics';
+import { useAppointments } from '@/contexts/AppointmentsContext';
 import { 
   Select, 
   SelectContent, 
@@ -28,7 +27,7 @@ const NewAppointment = () => {
   const { authState } = useAuth();
   const navigate = useNavigate();
   const { toast: uiToast } = useToast();
-  const { invalidateStatistics } = useUserStatistics();
+  const { refreshAppointments } = useAppointments();
   
   const [availability, setAvailability] = useState<Availability[]>([]);
   const [professionals, setProfessionals] = useState<Professional[]>([]);
@@ -119,8 +118,8 @@ const NewAppointment = () => {
         isBooked: true
       });
       
-      // Invalidar la caché de estadísticas para forzar una actualización
-      invalidateStatistics();
+      // Refrescar las citas en el contexto global
+      refreshAppointments();
       
       toast.success('Cita agendada correctamente');
       navigate('/dashboard/appointments');

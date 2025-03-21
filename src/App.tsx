@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -11,6 +10,7 @@ import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
+import { AppointmentsProvider } from "./contexts/AppointmentsContext";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import AppointmentsPage from "./pages/AppointmentsPage";
 import AppointmentDetail from "./pages/AppointmentDetail";
@@ -35,25 +35,27 @@ const App = () => (
         <Sonner />
         <BrowserRouter>
           <AuthProvider>
-            <Routes>
-              {/* Public routes */}
-              <Route path="/" element={<Index />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              
-              {/* Protected routes */}
-              <Route element={<ProtectedRoute />}>
-                <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/dashboard/appointments" element={<AppointmentsPage />} />
-                <Route path="/dashboard/appointments/:id" element={<AppointmentDetail />} />
-                <Route path="/dashboard/appointments/new" element={<NewAppointment />} />
-                <Route path="/dashboard/availability" element={<AvailabilityPage />} />
-                <Route path="/dashboard/profile" element={<ProfilePage />} />
-              </Route>
-              
-              {/* Catch-all route */}
-              <Route path="*" element={<NotFound />} />
-            </Routes>
+            <AppointmentsProvider>
+              <Routes>
+                {/* Public routes */}
+                <Route path="/" element={<Index />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                
+                {/* Protected routes */}
+                <Route element={<ProtectedRoute />}>
+                  <Route path="/dashboard" element={<Dashboard />} />
+                  <Route path="/dashboard/appointments" element={<AppointmentsPage />} />
+                  <Route path="/dashboard/appointments/:id" element={<AppointmentDetail />} />
+                  <Route path="/dashboard/appointments/new" element={<NewAppointment />} />
+                  <Route path="/dashboard/availability" element={<AvailabilityPage />} />
+                  <Route path="/dashboard/profile" element={<ProfilePage />} />
+                </Route>
+                
+                {/* Catch-all route */}
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </AppointmentsProvider>
           </AuthProvider>
         </BrowserRouter>
       </ThemeProvider>
