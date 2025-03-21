@@ -25,19 +25,19 @@ interface UserProfile {
 const userService = {
   // Obtener perfil del usuario actual
   getProfile: async (): Promise<User> => {
-    const response = await api.get<ApiResponse<User>>('/users/profile');
+    const response = await api.get<ApiResponse<User>>('/api/users/profile');
     return response.data.data;
   },
   
   // Actualizar perfil del usuario
   updateProfile: async (data: Partial<UserProfile>): Promise<User> => {
-    const response = await api.put<ApiResponse<User>>('/users/profile', data);
+    const response = await api.put<ApiResponse<User>>('/api/users/profile', data);
     return response.data.data;
   },
   
   // Cambiar contraseña
   changePassword: async (currentPassword: string, newPassword: string): Promise<void> => {
-    await api.post('/users/change-password', {
+    await api.post('/api/users/change-password', {
       currentPassword,
       newPassword
     });
@@ -45,7 +45,7 @@ const userService = {
   
   // Obtener estadísticas del usuario
   getStatistics: async (userId: string): Promise<UserStatistics> => {
-    const response = await api.get<ApiResponse<UserStatistics>>(`/users/${userId}/statistics`);
+    const response = await api.get<ApiResponse<UserStatistics>>(`/api/users/${userId}/statistics`);
     return response.data.data;
   }
 };

@@ -136,9 +136,9 @@ const AppointmentDetail = () => {
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <CardTitle>Cita #{appointment.id.slice(0, 8)}</CardTitle>
-              <Badge className={getStatusColor(appointment.status)}>
-                {getStatusText(appointment.status)}
+              <CardTitle>Cita #{appointment?.id?.slice(0, 8)}</CardTitle>
+              <Badge className={getStatusColor(appointment?.status || '')}>
+                {getStatusText(appointment?.status || '')}
               </Badge>
             </div>
             <CardDescription>
@@ -151,7 +151,7 @@ const AppointmentDetail = () => {
                 <span className="text-sm font-medium text-muted-foreground">Fecha y Hora</span>
                 <div className="flex items-center border p-3 rounded-md">
                   <CalendarIcon className="h-4 w-4 mr-2 text-muted-foreground" />
-                  <span>{formatDate(appointment.appointmentDate)}</span>
+                  <span>{appointment ? formatDate(appointment.appointmentDate) : '-'}</span>
                 </div>
               </div>
               
@@ -159,7 +159,7 @@ const AppointmentDetail = () => {
                 <span className="text-sm font-medium text-muted-foreground">Profesional</span>
                 <div className="flex items-center border p-3 rounded-md">
                   <UserIcon className="h-4 w-4 mr-2 text-muted-foreground" />
-                  <span>Dr. {appointment.professionalId.slice(0, 8)}</span>
+                  <span>Dr. {appointment?.professionalId?.slice(0, 8)}</span>
                 </div>
               </div>
             </div>
@@ -167,12 +167,12 @@ const AppointmentDetail = () => {
             <div className="flex flex-col space-y-1">
               <span className="text-sm font-medium text-muted-foreground">ID de la Cita</span>
               <div className="flex items-center border p-3 rounded-md">
-                <span className="font-mono text-sm">{appointment.id}</span>
+                <span className="font-mono text-sm">{appointment?.id}</span>
               </div>
             </div>
           </CardContent>
           <CardFooter className="flex justify-end space-x-2">
-            {appointment.status === 'SCHEDULED' && (
+            {appointment?.status === 'SCHEDULED' && (
               <Button variant="destructive" onClick={handleCancel}>
                 Cancelar Cita
               </Button>
