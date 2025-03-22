@@ -1,4 +1,3 @@
-
 // Tipos comunes para respuestas API
 export interface ApiResponse<T> {
   success: boolean;
@@ -41,6 +40,7 @@ export interface Appointment {
   id: string;
   patientId: string;
   professionalId: string;
+  availabilityId: string;
   appointmentDate: string;
   status: AppointmentStatus;
   createdAt: string;
@@ -50,6 +50,7 @@ export interface Appointment {
 export interface CreateAppointmentRequest {
   patientId: string;
   professionalId: string;
+  availabilityId: string;
   appointmentDate: string;
   status: AppointmentStatus;
 }

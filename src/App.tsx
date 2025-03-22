@@ -11,6 +11,7 @@ import Dashboard from "./pages/Dashboard";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import { AppointmentsProvider } from "./contexts/AppointmentsContext";
+import { ProfessionalsProvider } from "./contexts/ProfessionalsContext";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import AppointmentsPage from "./pages/AppointmentsPage";
 import AppointmentDetail from "./pages/AppointmentDetail";
@@ -44,12 +45,18 @@ const App = () => (
                 
                 {/* Protected routes */}
                 <Route element={<ProtectedRoute />}>
-                  <Route path="/dashboard" element={<Dashboard />} />
-                  <Route path="/dashboard/appointments" element={<AppointmentsPage />} />
-                  <Route path="/dashboard/appointments/:id" element={<AppointmentDetail />} />
-                  <Route path="/dashboard/appointments/new" element={<NewAppointment />} />
-                  <Route path="/dashboard/availability" element={<AvailabilityPage />} />
-                  <Route path="/dashboard/profile" element={<ProfilePage />} />
+                  <Route path="/dashboard/*" element={
+                    <ProfessionalsProvider>
+                      <Routes>
+                        <Route path="" element={<Dashboard />} />
+                        <Route path="appointments" element={<AppointmentsPage />} />
+                        <Route path="appointments/:id" element={<AppointmentDetail />} />
+                        <Route path="appointments/new" element={<NewAppointment />} />
+                        <Route path="availability" element={<AvailabilityPage />} />
+                        <Route path="profile" element={<ProfilePage />} />
+                      </Routes>
+                    </ProfessionalsProvider>
+                  } />
                 </Route>
                 
                 {/* Catch-all route */}

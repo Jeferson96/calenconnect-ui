@@ -3,7 +3,7 @@ import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { ArrowLeftIcon, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { appointmentsService, availabilityService, professionalsService } from '@/services/api';
+import { appointmentsService, availabilityService } from '@/services/api';
 import { Availability } from '@/types/api';
 import { formatDate, formatTime, formatTimeRange } from '@/lib/utils';
 import { useToast } from '@/components/ui/use-toast';
@@ -13,7 +13,7 @@ import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { Calendar } from '@/components/ui/calendar';
-import { Professional } from '@/services/api/professionals';
+import { useProfessionals } from '@/contexts/ProfessionalsContext';
 import { useAppointments } from '@/contexts/AppointmentsContext';
 import { 
   Select, 
@@ -94,10 +94,10 @@ const NewAppointment = () => {
   const navigate = useNavigate();
   const { toast: uiToast } = useToast();
   const { refreshAppointments } = useAppointments();
+  const { professionals, loading: professionalsLoading } = useProfessionals();
   
   const [availability, setAvailability] = useState<Availability[]>([]);
-  const [professionals, setProfessionals] = useState<Professional[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedSlot, setSelectedSlot] = useState<Availability | null>(null);
   const [selectedProfessional, setSelectedProfessional] = useState<string>('');
@@ -108,27 +108,6 @@ const NewAppointment = () => {
     processAvailabilityData(availability), 
     [availability]
   );
-  
-  // Obtener profesionales al cargar la página
-  useEffect(() => {
-    const fetchProfessionals = async () => {
-      try {
-        const result = await professionalsService.getAll();
-        setProfessionals(result);
-        setLoading(false);
-      } catch (error) {
-        console.error('Error fetching professionals:', error);
-        uiToast({
-          variant: 'destructive',
-          title: 'Error',
-          description: 'No se pudieron cargar los profesionales. Por favor, intenta de nuevo.',
-        });
-        setLoading(false);
-      }
-    };
-    
-    fetchProfessionals();
-  }, [uiToast]);
   
   // Obtener disponibilidad cuando se selecciona un profesional
   useEffect(() => {
@@ -176,13 +155,9 @@ const NewAppointment = () => {
       await appointmentsService.create({
         patientId: authState.user.id,
         professionalId: selectedSlot.professionalId,
+        availabilityId: selectedSlot.id,
         appointmentDate: selectedSlot.startTime,
         status: 'SCHEDULED'
-      });
-      
-      // Actualizar la disponibilidad para marcarla como reservada
-      await availabilityService.update(selectedSlot.id, {
-        isBooked: true
       });
       
       // Refrescar las citas en el contexto global
@@ -224,7 +199,7 @@ const NewAppointment = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            {loading && !selectedProfessional ? (
+            {professionalsLoading ? (
               <div className="p-8 text-center">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-secondary mx-auto"></div>
                 <p className="mt-2 text-sm text-muted-foreground">Cargando profesionales...</p>
@@ -315,7 +290,7 @@ const NewAppointment = () => {
               <Button 
                 disabled={!selectedSlot || loading || selectedSlot?.isBooked || isBooking} 
                 onClick={handleBookAppointment}
-                className="px-6 py-2 font-medium bg-primary text-primary-foreground hover:bg-primary/90 dark:bg-primary dark:text-primary-foreground dark:hover:bg-primary/90 transition-colors relative min-w-[150px] focus:ring-2 focus:ring-primary/50 dark:focus:ring-primary-foreground/20 dark:bg-purple-700 dark:hover:bg-purple-800"
+                className="px-6 py-2 font-medium bg-primary text-primary-foreground hover:bg-primary/90 dark:bg-purple-700 dark:hover:bg-purple-800 transition-colors relative min-w-[150px] focus:ring-2 focus:ring-primary/50 dark:focus:ring-primary-foreground/20"
                 aria-live="polite"
               >
                 {isBooking ? (
