@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import { Button } from '@/components/ui/button';
-import { ArrowLeftIcon } from 'lucide-react';
+import { ArrowLeftIcon, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { appointmentsService, availabilityService, professionalsService } from '@/services/api';
 import { Availability } from '@/types/api';
-import { formatDate, formatTime } from '@/lib/utils';
+import { formatDate, formatTime, formatTimeRange } from '@/lib/utils';
 import { useToast } from '@/components/ui/use-toast';
 import { Link, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -23,6 +23,72 @@ import {
   SelectValue 
 } from '@/components/ui/select';
 
+/**
+ * Procesa los datos de disponibilidad para facilitar su uso en la interfaz
+ * Incluye todos los slots, tanto disponibles como no disponibles
+ */
+const processAvailabilityData = (availability: Availability[]) => {
+  // Mantener todos los slots, incluyendo los reservados
+  
+  // Obtener todas las fechas únicas
+  const allDates = [...new Set(
+    availability.map(slot => slot.availableDate)
+  )].map(dateStr => new Date(dateStr));
+  
+  // Agrupar slots por fecha para acceso rápido (sin filtrar por isBooked)
+  const slotsByDate: Record<string, Availability[]> = {};
+  
+  availability.forEach(slot => {
+    const dateKey = slot.availableDate;
+    if (!slotsByDate[dateKey]) {
+      slotsByDate[dateKey] = [];
+    }
+    slotsByDate[dateKey].push(slot);
+  });
+  
+  // Eliminar duplicados exactos y ordenar cada grupo de slots por hora de inicio
+  Object.keys(slotsByDate).forEach(date => {
+    // Eliminar duplicados con mismo horario (manteniendo los no reservados si existen)
+    const uniqueTimeSlots: Record<string, Availability> = {};
+    
+    // Primero procesamos los slots no reservados
+    slotsByDate[date]
+      .filter(slot => !slot.isBooked)
+      .forEach(slot => {
+        const timeKey = `${slot.startTime}-${slot.endTime}`;
+        uniqueTimeSlots[timeKey] = slot;
+      });
+    
+    // Luego procesamos los reservados (solo se añaden si no existe ya un slot con ese horario)
+    slotsByDate[date]
+      .filter(slot => slot.isBooked)
+      .forEach(slot => {
+        const timeKey = `${slot.startTime}-${slot.endTime}`;
+        if (!uniqueTimeSlots[timeKey]) {
+          uniqueTimeSlots[timeKey] = slot;
+        }
+      });
+    
+    // Convertir de vuelta a array y ordenar
+    const uniqueSlots = Object.values(uniqueTimeSlots).sort((a, b) => 
+      new Date(a.startTime).getTime() - new Date(b.startTime).getTime()
+    );
+    
+    slotsByDate[date] = uniqueSlots;
+  });
+  
+  // Filtrar fechas para el calendario (solo fechas con al menos un slot disponible)
+  const availableDates = allDates.filter(date => 
+    slotsByDate[format(date, 'yyyy-MM-dd')]?.some(slot => !slot.isBooked)
+  );
+  
+  return { 
+    allDates,         // todas las fechas 
+    availableDates,   // fechas con al menos un slot disponible
+    slotsByDate       // todos los slots por fecha (disponibles y no disponibles)
+  };
+};
+
 const NewAppointment = () => {
   const { authState } = useAuth();
   const navigate = useNavigate();
@@ -35,6 +101,13 @@ const NewAppointment = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedSlot, setSelectedSlot] = useState<Availability | null>(null);
   const [selectedProfessional, setSelectedProfessional] = useState<string>('');
+  const [isBooking, setIsBooking] = useState(false);
+  
+  // Procesar datos de disponibilidad de forma eficiente
+  const { availableDates, slotsByDate } = useMemo(() => 
+    processAvailabilityData(availability), 
+    [availability]
+  );
   
   // Obtener profesionales al cargar la página
   useEffect(() => {
@@ -83,18 +156,9 @@ const NewAppointment = () => {
     fetchAvailability();
   }, [selectedProfessional, uiToast]);
   
-  // Convertir las fechas de disponibilidad en objetos Date para el calendario
-  const availableDates = availability
-    .filter(slot => !slot.isBooked)
-    .map(slot => new Date(slot.availableDate));
-  
-  // Filtrar slots para la fecha seleccionada
-  const availableSlots = selectedDate 
-    ? availability.filter(
-        slot => 
-          !slot.isBooked && 
-          slot.availableDate === format(selectedDate, 'yyyy-MM-dd')
-      )
+  // Obtener slots para la fecha seleccionada (incluyendo los que están reservados)
+  const slotsForSelectedDate = selectedDate 
+    ? slotsByDate[format(selectedDate, 'yyyy-MM-dd')] || []
     : [];
   
   const handleProfessionalChange = (value: string) => {
@@ -102,9 +166,12 @@ const NewAppointment = () => {
   };
   
   const handleBookAppointment = async () => {
-    if (!selectedSlot || !authState.user) return;
+    if (!selectedSlot || !authState.user || isBooking) return;
     
     try {
+      // Activar estado de carga
+      setIsBooking(true);
+      
       // Crear la cita
       await appointmentsService.create({
         patientId: authState.user.id,
@@ -130,6 +197,9 @@ const NewAppointment = () => {
         title: 'Error',
         description: 'No se pudo agendar la cita. Por favor, intenta de nuevo.',
       });
+    } finally {
+      // Desactivar estado de carga incluso si hay errores
+      setIsBooking(false);
     }
   };
   
@@ -170,7 +240,7 @@ const NewAppointment = () => {
                     <SelectContent>
                       {professionals.map((professional) => (
                         <SelectItem key={professional.id} value={professional.id}>
-                          {professional.firstName} {professional.lastName} - {professional.specialty}
+                          {professional.fullName}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -194,7 +264,7 @@ const NewAppointment = () => {
                           disabled={[
                             { before: new Date() },
                             (date) => {
-                              // Deshabilitar fechas que no están en availableDates
+                              // Solo deshabilitar fechas que no tienen ningún slot disponible
                               return !availableDates.some(
                                 availableDate => 
                                   format(availableDate, 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd')
@@ -210,22 +280,24 @@ const NewAppointment = () => {
                     <div>
                       <h3 className="text-lg font-medium mb-4">3. Selecciona un horario</h3>
                       {selectedDate ? (
-                        availableSlots.length > 0 ? (
+                        slotsForSelectedDate.length > 0 ? (
                           <div className="grid grid-cols-2 gap-2">
-                            {availableSlots.map(slot => (
+                            {slotsForSelectedDate.map(slot => (
                               <Button
                                 key={slot.id}
                                 variant={selectedSlot?.id === slot.id ? "default" : "outline"}
-                                className="justify-center"
-                                onClick={() => setSelectedSlot(slot)}
+                                className={`justify-center ${slot.isBooked ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                onClick={() => !slot.isBooked && setSelectedSlot(slot)}
+                                disabled={slot.isBooked}
                               >
-                                {formatTime(slot.startTime)}
+                                {formatTimeRange(slot.startTime, slot.endTime)}
+                                {slot.isBooked && <span className="ml-2 text-xs">(No disponible)</span>}
                               </Button>
                             ))}
                           </div>
                         ) : (
                           <p className="text-center py-8 text-muted-foreground">
-                            No hay horarios disponibles para esta fecha.
+                            No hay horarios configurados para esta fecha.
                           </p>
                         )
                       ) : (
@@ -241,10 +313,22 @@ const NewAppointment = () => {
             
             <div className="flex justify-end mt-6">
               <Button 
-                disabled={!selectedSlot || loading} 
+                disabled={!selectedSlot || loading || selectedSlot?.isBooked || isBooking} 
                 onClick={handleBookAppointment}
+                className="px-6 py-2 font-medium bg-primary text-primary-foreground hover:bg-primary/90 dark:bg-primary dark:text-primary-foreground dark:hover:bg-primary/90 transition-colors relative min-w-[150px] focus:ring-2 focus:ring-primary/50 dark:focus:ring-primary-foreground/20 dark:bg-purple-700 dark:hover:bg-purple-800"
+                aria-live="polite"
               >
-                Agendar Cita
+                {isBooking ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    <span>Agendando...</span>
+                  </>
+                ) : (
+                  'Agendar Cita'
+                )}
+                {isBooking && (
+                  <span className="absolute inset-0 bg-transparent" aria-hidden="true" />
+                )}
               </Button>
             </div>
           </CardContent>
