@@ -5,8 +5,8 @@ import { User, AuthState } from '@/types';
 import { useToast } from '@/components/ui/use-toast';
 import { toast as sonnerToast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
-import api from '@/lib/axios'; // Importamos la instancia configurada de axios
-import userService from '@/services/api/user'; // Importamos el servicio de usuario
+import { useQueryClient, useQuery } from '@tanstack/react-query';
+import userService from '@/services/api/user';
 
 interface AuthContextProps {
   authState: AuthState;
@@ -25,21 +25,103 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   });
   const { toast } = useToast();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+
+  // Función para obtener el perfil del usuario usando React Query
+  const fetchUserProfile = async (userId: string) => {
+    try {
+      // Utilizamos el servicio de usuario para obtener el perfil
+      const userData = await userService.getProfileByUuid(userId);
+      return userData;
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+      throw error;
+    }
+  };
+
+  // Manejador de sesión para actualizar el estado de autenticación
+  const handleSession = async (session: Session | null) => {
+    if (!session) {
+      setAuthState({ user: null, session: null, loading: false });
+      // Invalidar todas las consultas cuando el usuario cierra sesión
+      queryClient.invalidateQueries();
+      return;
+    }
+
+    try {
+      // Obtener el usuario desde la sesión
+      const { user } = session;
+      
+      if (!user) {
+        setAuthState({ user: null, session: null, loading: false });
+        return;
+      }
+
+      // Prefetch del perfil de usuario para evitar múltiples llamadas
+      const profileQueryKey = ['userProfile', user.id];
+
+      // Obtenemos el perfil usando React Query para cachear el resultado
+      const profile = await queryClient.fetchQuery({
+        queryKey: profileQueryKey,
+        queryFn: () => fetchUserProfile(user.id),
+        staleTime: 10 * 60 * 1000, // 10 minutos antes de considerar obsoleto
+      });
+
+      // Crear el objeto de usuario con los datos de la API
+      const userProfile: User = {
+        id: user.id,
+        email: user.email || '',
+        firstName: profile?.firstName || '',
+        lastName: profile?.lastName || '',
+        role: profile?.role as 'PATIENT' | 'PROFESSIONAL' || 'PATIENT',
+      };
+
+      // Actualizar el estado de autenticación
+      setAuthState({
+        user: userProfile,
+        session,
+        loading: false,
+      });
+    } catch (error) {
+      console.error('Profile handling error:', error);
+      
+      // Fallar silenciosamente si no podemos obtener el perfil
+      // Intentamos usar los metadatos básicos si la API falla
+      if (session.user) {
+        const userData = session.user.user_metadata || {};
+        
+        // Crear un objeto de usuario con los datos disponibles (sin rol)
+        const userProfile: User = {
+          id: session.user.id,
+          email: session.user.email || '',
+          firstName: userData.first_name || '',
+          lastName: userData.last_name || '',
+          // Por defecto, asignamos el rol PATIENT si no se pudo obtener del API
+          role: 'PATIENT',
+        };
+        
+        setAuthState({
+          user: userProfile,
+          session,
+          loading: false,
+        });
+        
+        toast({
+          variant: 'destructive',
+          title: 'Advertencia',
+          description: 'No se pudo obtener información completa del perfil. Algunas funciones podrían estar limitadas.',
+        });
+      } else {
+        // Si no hay usuario en la sesión, establecemos null
+        setAuthState({ user: null, session: null, loading: false });
+      }
+    }
+  };
 
   useEffect(() => {
     // Check for active session on mount
-    supabase.auth.getSession().then(({ data: { session }, error }) => {
-      if (error) {
-        console.error('Session fetch error:', error);
-        setAuthState((prev) => ({ ...prev, loading: false }));
-        return;
-      }
-      
-      if (session) {
-        fetchUserProfile(session);
-      } else {
-        setAuthState((prev) => ({ ...prev, loading: false }));
-      }
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      handleSession(session);
     }).catch(error => {
       console.error('Unexpected error fetching session:', error);
       setAuthState((prev) => ({ ...prev, loading: false }));
@@ -47,93 +129,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session) {
-        fetchUserProfile(session);
-      } else {
-        setAuthState({ user: null, session: null, loading: false });
-      }
+      handleSession(session);
     });
 
     return () => {
       subscription.unsubscribe();
     };
   }, []);
-
-  const fetchUserProfile = async (session: Session) => {
-    try {
-      // Obtenemos el usuario de la sesión
-      const { user } = session;
-      
-      if (!user) {
-        setAuthState({ user: null, session: null, loading: false });
-        return;
-      }
-      
-      try {
-        // Utilizamos el servicio de usuario para obtener el perfil
-        const userData = await userService.getProfileByUuid(user.id);
-        
-        // Crear el objeto de usuario con los datos de la API
-        const userProfile: User = {
-          id: user.id,
-          email: user.email || '',
-          firstName: userData.firstName || '',
-          lastName: userData.lastName || '',
-          // Omitimos fullName para evitar problemas de linting
-          role: userData.role as 'PATIENT' | 'PROFESSIONAL', // Aseguramos el tipo correcto
-        };
-        
-        console.log('Perfil de usuario obtenido con éxito:', userProfile);
-        
-        // Actualizar el estado de autenticación con el perfil completo
-        setAuthState({
-          user: userProfile,
-          session,
-          loading: false,
-        });
-        
-        return;
-      } catch (apiError) {
-        console.error('Error fetching user role:', apiError);
-        
-        // Mostrar un toast con el error - usando variant como destructive
-        toast({
-          variant: 'destructive',
-          title: 'Advertencia',
-          description: 'No se pudo obtener información completa del perfil. Algunas funciones podrían estar limitadas.',
-        });
-        
-        // Si falla la petición a la API, continuamos con los datos básicos del usuario
-      }
-      
-      // Fallback: usar los metadatos básicos si la API falla
-      const userData = user.user_metadata || {};
-      
-      // Crear un objeto de usuario con los datos disponibles (sin rol)
-      const userProfile: User = {
-        id: user.id,
-        email: user.email || '',
-        firstName: userData.first_name || '',
-        lastName: userData.last_name || '',
-        // Por defecto, asignamos el rol PATIENT si no se pudo obtener del API
-        role: 'PATIENT',
-      };
-      
-      console.log('Usando perfil básico del usuario:', userProfile);
-      
-      // Actualizar el estado de autenticación
-      setAuthState({
-        user: userProfile,
-        session,
-        loading: false,
-      });
-      
-    } catch (error) {
-      console.error('Profile fetch error:', error);
-      // Actualizar el estado para indicar que no hay usuario autenticado
-      setAuthState({ user: null, session: null, loading: false });
-    }
-  };
 
   const signIn = async (email: string, password: string) => {
     try {
@@ -167,13 +169,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         description: errorMessage,
       });
       
-      throw error; // Re-lanzamos el error para que pueda ser manejado por el componente
+      throw error;
     }
   };
 
   const signUp = async (email: string, password: string, firstName: string, lastName: string) => {
     try {
-      // Registrar el usuario en Supabase Auth
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
@@ -187,8 +188,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) throw error;
 
-      // Por ahora, no intentamos crear un perfil en la tabla 'profiles'
-      // Solo actualizamos el estado con los datos del usuario
       if (data.user) {
         setAuthState({
           user: {
@@ -201,7 +200,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           loading: false,
         });
         
-        // Opcional: Mostrar mensaje de éxito
         toast({
           title: "Cuenta creada con éxito",
           description: "Se ha enviado un correo de confirmación a tu dirección de email.",
@@ -216,9 +214,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signOut = async () => {
     try {
       await supabase.auth.signOut();
+      
+      // Limpiar el caché de React Query
+      queryClient.clear();
+      
       sonnerToast.success('Sesión cerrada', {
         description: 'Has cerrado sesión correctamente.',
       });
+      
       navigate('/');
     } catch (error: Error | unknown) {
       console.error('Sign out error:', error);

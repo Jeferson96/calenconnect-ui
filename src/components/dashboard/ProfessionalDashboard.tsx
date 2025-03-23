@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
 import { CalendarCheckIcon, UsersIcon, ClipboardListIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -9,17 +9,47 @@ import { useToast } from '@/components/ui/use-toast';
 import { availabilityService } from '@/services/api';
 import { Availability } from '@/types/api';
 import { formatDate, formatTime } from '@/lib/utils';
+import { useQuery } from '@tanstack/react-query';
 
 const ProfessionalDashboard = () => {
   const { authState } = useAuth();
   const { toast } = useToast();
-  const [loading, setLoading] = useState(true);
-  const [availability, setAvailability] = useState<Availability[]>([]);
-  const [statistics, setStatistics] = useState({
-    totalAppointments: 0,
-    pendingAppointments: 0,
-    availabilitySlots: 0
+  
+  // Usar React Query para obtener la disponibilidad
+  const { 
+    data: availability = [], 
+    isLoading 
+  } = useQuery({
+    queryKey: ['professionalAvailability', authState.user?.id],
+    queryFn: async () => {
+      if (!authState.user?.id) return [];
+      try {
+        return await availabilityService.getAll(authState.user.id);
+      } catch (error) {
+        console.error('Error fetching professional data:', error);
+        toast({
+          variant: 'destructive',
+          title: 'Error',
+          description: 'No se pudieron cargar los datos. Por favor, intenta de nuevo.',
+        });
+        return [];
+      }
+    },
+    // No ejecutar la consulta si no hay usuario
+    enabled: !!authState.user?.id,
+    // Mantener los datos anteriores mientras se refresca
+    placeholderData: [],
+    // No refrescar automáticamente
+    refetchOnWindowFocus: false,
+    staleTime: 5 * 60 * 1000, // 5 minutos
   });
+  
+  // Estadísticas simuladas - en un entorno real, esto vendría de la API
+  const statistics = {
+    totalAppointments: 24,
+    pendingAppointments: 8,
+    availabilitySlots: availability.length
+  };
   
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -36,39 +66,6 @@ const ProfessionalDashboard = () => {
     visible: { opacity: 1, y: 0 }
   };
   
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        if (authState.user) {
-          // En un escenario real, usaríamos el ID del profesional desde el perfil
-          const professionalId = authState.user.id;
-          
-          // Obtener disponibilidad
-          const availabilityData = await availabilityService.getAll(professionalId);
-          setAvailability(availabilityData);
-          
-          // En un escenario real, obtendríamos estadísticas reales del backend
-          setStatistics({
-            totalAppointments: 24,
-            pendingAppointments: 8,
-            availabilitySlots: availabilityData.length
-          });
-        }
-      } catch (error) {
-        console.error('Error fetching professional data:', error);
-        toast({
-          variant: 'destructive',
-          title: 'Error',
-          description: 'No se pudieron cargar los datos. Por favor, intenta de nuevo.',
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    fetchData();
-  }, [authState.user, toast]);
-  
   return (
     <motion.div
       className="space-y-6"
@@ -79,21 +76,21 @@ const ProfessionalDashboard = () => {
       <motion.div variants={itemVariants} className="grid grid-cols-1 gap-4 md:grid-cols-3">
         <StatsCard 
           title="Citas Pendientes" 
-          value={loading ? "..." : statistics.pendingAppointments.toString()} 
+          value={isLoading ? "..." : statistics.pendingAppointments.toString()} 
           icon={<CalendarCheckIcon className="h-5 w-5 text-blue-500" />}
           description="Por atender"
         />
         
         <StatsCard 
           title="Total Pacientes" 
-          value={loading ? "..." : "16"} 
+          value={isLoading ? "..." : "16"} 
           icon={<UsersIcon className="h-5 w-5 text-green-500" />}
           description="Pacientes únicos"
         />
         
         <StatsCard 
           title="Disponibilidad" 
-          value={loading ? "..." : statistics.availabilitySlots.toString()} 
+          value={isLoading ? "..." : statistics.availabilitySlots.toString()} 
           icon={<ClipboardListIcon className="h-5 w-5 text-purple-500" />}
           description="Horarios disponibles"
         />
@@ -107,7 +104,7 @@ const ProfessionalDashboard = () => {
           </Link>
         </div>
         
-        {loading ? (
+        {isLoading ? (
           <div className="p-8 text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-secondary mx-auto"></div>
             <p className="mt-2 text-sm text-muted-foreground">Cargando disponibilidad...</p>

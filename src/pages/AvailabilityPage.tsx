@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import { Button } from '@/components/ui/button';
-import { CalendarIcon, PlusIcon } from 'lucide-react';
+import { PlusIcon } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { availabilityService } from '@/services/api';
 import { Availability } from '@/types/api';
@@ -10,28 +10,28 @@ import { useToast } from '@/components/ui/use-toast';
 import { 
   Table, 
   TableBody, 
-  TableCaption, 
   TableCell, 
   TableHead, 
   TableHeader, 
   TableRow 
 } from '@/components/ui/table';
 import PageTransition from '@/components/layout/PageTransition';
+import { useQuery } from '@tanstack/react-query';
 
 const AvailabilityPage = () => {
   const { authState } = useAuth();
   const { toast } = useToast();
-  const [availability, setAvailability] = useState<Availability[]>([]);
-  const [loading, setLoading] = useState(true);
   
-  useEffect(() => {
-    const fetchAvailability = async () => {
+  // Usar React Query para obtener la disponibilidad
+  const { 
+    data: availability = [], 
+    isLoading 
+  } = useQuery({
+    queryKey: ['availability', authState.user?.id],
+    queryFn: async () => {
+      if (!authState.user?.id) return [];
       try {
-        if (authState.user) {
-          const professionalId = "4c7ba716-9397-406a-92a8-642201c0ac17";
-          const result = await availabilityService.getAll(professionalId);
-          setAvailability(result);
-        }
+        return await availabilityService.getAll(authState.user.id);
       } catch (error) {
         console.error('Error fetching availability:', error);
         toast({
@@ -39,13 +39,14 @@ const AvailabilityPage = () => {
           title: 'Error',
           description: 'No se pudo cargar la disponibilidad. Por favor, intenta de nuevo.',
         });
-      } finally {
-        setLoading(false);
+        return [];
       }
-    };
-    
-    fetchAvailability();
-  }, [authState.user, toast]);
+    },
+    enabled: !!authState.user?.id,
+    placeholderData: [],
+    refetchOnWindowFocus: false,
+    staleTime: 5 * 60 * 1000, // 5 minutos
+  });
   
   const groupedByDate: Record<string, Availability[]> = {};
   
@@ -73,7 +74,7 @@ const AvailabilityPage = () => {
             </Button>
           </div>
           
-          {loading ? (
+          {isLoading ? (
             <div className="p-8 text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-secondary mx-auto"></div>
               <p className="mt-2 text-sm text-muted-foreground">Cargando disponibilidad...</p>

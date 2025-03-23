@@ -1,4 +1,3 @@
-
 import React, { ReactNode } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { 
@@ -6,14 +5,16 @@ import {
   ClockIcon, 
   UserIcon, 
   LogOutIcon, 
-  LayoutDashboardIcon,
+  HomeIcon,
   CalendarDaysIcon,
-  SettingsIcon
+  SettingsIcon,
+  PlusCircleIcon
 } from 'lucide-react';
 import ThemeToggle from '@/components/theme/ThemeToggle';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import MobileNavbar from './MobileNavbar';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -22,6 +23,7 @@ interface DashboardLayoutProps {
 const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   const { authState, signOut } = useAuth();
   const location = useLocation();
+  const userRole = authState.user?.role;
   
   if (authState.loading) {
     return (
@@ -50,22 +52,38 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
           <nav className="mt-10 space-y-1">
             <SidebarLink 
               to="/dashboard" 
-              icon={<LayoutDashboardIcon className="h-5 w-5" />} 
+              icon={<HomeIcon className="h-5 w-5" />} 
               label="Dashboard" 
               active={isActive('/dashboard')}
             />
-            <SidebarLink 
-              to="/dashboard/appointments" 
-              icon={<CalendarIcon className="h-5 w-5" />} 
-              label="Mis Citas" 
-              active={isActive('/dashboard/appointments')}
-            />
-            <SidebarLink 
-              to="/dashboard/availability" 
-              icon={<CalendarDaysIcon className="h-5 w-5" />} 
-              label="Disponibilidad" 
-              active={isActive('/dashboard/availability')}
-            />
+            
+            {/* Mostrar enlaces según el rol */}
+            {(!userRole || userRole === 'PATIENT') && (
+              <>
+                <SidebarLink 
+                  to="/dashboard/appointments" 
+                  icon={<CalendarIcon className="h-5 w-5" />} 
+                  label="Mis Citas" 
+                  active={isActive('/dashboard/appointments')}
+                />
+                <SidebarLink 
+                  to="/dashboard/appointments/new" 
+                  icon={<PlusCircleIcon className="h-5 w-5" />} 
+                  label="Nueva Cita" 
+                  active={isActive('/dashboard/appointments/new')}
+                />
+              </>
+            )}
+            
+            {userRole === 'PROFESSIONAL' && (
+              <SidebarLink 
+                to="/dashboard/availability" 
+                icon={<CalendarDaysIcon className="h-5 w-5" />} 
+                label="Disponibilidad" 
+                active={isActive('/dashboard/availability')}
+              />
+            )}
+            
             <SidebarLink 
               to="/dashboard/profile" 
               icon={<UserIcon className="h-5 w-5" />} 
@@ -84,7 +102,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       
       {/* Main content */}
       <div className="flex-1 flex flex-col min-h-screen">
-        <header className="bg-card border-b border-border h-16 px-4 flex items-center justify-between">
+        <header className="bg-card border-b border-border h-16 px-4 sticky top-0 z-10 flex items-center justify-between">
           <div className="md:hidden flex items-center">
             <div className="flex items-center space-x-2">
               <div className="w-8 h-8 rounded-full bg-secondary flex items-center justify-center">
@@ -109,9 +127,12 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
           </div>
         </header>
         
-        <main className="flex-1 p-4 md:p-6 overflow-auto">
+        <main className="flex-1 p-4 md:p-6 overflow-auto pb-20 md:pb-6">
           {children}
         </main>
+        
+        {/* Mobile navigation */}
+        <MobileNavbar />
       </div>
     </div>
   );

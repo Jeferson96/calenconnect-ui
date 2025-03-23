@@ -1,13 +1,14 @@
-import React, { createContext, useState, useEffect, useContext, ReactNode } from 'react';
+import React, { createContext, useContext, ReactNode } from 'react';
 import { professionalsService } from '@/services/api';
 import { Professional } from '@/services/api/professionals';
 import { useAuth } from './AuthContext';
+import { useQuery } from '@tanstack/react-query';
 
 interface ProfessionalsContextType {
   professionals: Professional[];
   loading: boolean;
   error: Error | null;
-  refreshProfessionals: () => Promise<void>;
+  refreshProfessionals: () => void;
 }
 
 const ProfessionalsContext = createContext<ProfessionalsContextType | undefined>(undefined);
@@ -18,49 +19,33 @@ interface ProfessionalsProviderProps {
 
 export const ProfessionalsProvider = ({ children }: ProfessionalsProviderProps) => {
   const { authState } = useAuth();
-  const [professionals, setProfessionals] = useState<Professional[]>([]);
-  const [loading, setLoading] = useState<boolean>(false); // Inicialmente no está cargando
-  const [error, setError] = useState<Error | null>(null);
   
-  // Función para cargar profesionales
-  const loadProfessionals = async () => {
-    if (!authState.user?.id) return; // Solo ejecutar si hay un usuario autenticado
-    
-    try {
-      setLoading(true);
-      setError(null);
-      
-      const data = await professionalsService.getAll();
-      setProfessionals(data);
-    } catch (err) {
-      console.error('Error loading professionals:', err);
-      setError(err instanceof Error ? err : new Error('Error desconocido al cargar profesionales'));
-    } finally {
-      setLoading(false);
-    }
-  };
-  
-  // Cargar profesionales solo cuando el usuario esté autenticado
-  useEffect(() => {
-    if (authState.user?.id) {
-      loadProfessionals();
-    } else {
-      // Limpiar datos si el usuario se desconecta
-      setProfessionals([]);
-    }
-  }, [authState.user?.id]); // Dependencia: ID del usuario
-  
-  // Función para refrescar profesionales manualmente
-  const refreshProfessionals = async () => {
-    await loadProfessionals();
-  };
+  const { 
+    data: professionals = [], 
+    isLoading: loading, 
+    error,
+    refetch: refreshProfessionals 
+  } = useQuery({
+    queryKey: ['professionals'],
+    queryFn: async () => {
+      try {
+        return await professionalsService.getAll();
+      } catch (err) {
+        console.error('Error loading professionals:', err);
+        throw err instanceof Error ? err : new Error('Error desconocido al cargar profesionales');
+      }
+    },
+    enabled: !!authState.user?.id, // Solo ejecutar si hay un usuario autenticado
+    staleTime: 5 * 60 * 1000, // 5 minutos
+    refetchOnWindowFocus: false
+  });
   
   return (
     <ProfessionalsContext.Provider
       value={{
         professionals,
         loading,
-        error,
+        error: error as Error | null,
         refreshProfessionals
       }}
     >

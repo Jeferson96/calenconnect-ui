@@ -55,7 +55,7 @@ const AccessDenied = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center p-6">
+    <div className="min-h-screen flex flex-col items-center justify-center p-6 pb-20 md:pb-6">
       <motion.div
         className="text-center space-y-6 max-w-4xl mx-auto"
         variants={containerVariants}

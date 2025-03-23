@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import { Button } from '@/components/ui/button';
 import { ArrowLeftIcon, Loader2, CalendarIcon, ClockIcon, UserIcon } from 'lucide-react';
@@ -29,6 +29,7 @@ import {
   SelectValue 
 } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
+import { useQuery } from '@tanstack/react-query';
 
 /**
  * Procesa los datos de disponibilidad para facilitar su uso en la interfaz
@@ -103,30 +104,25 @@ const NewAppointment = () => {
   const { refreshAppointments } = useAppointments();
   const { professionals, loading: professionalsLoading } = useProfessionals();
   
-  const [availability, setAvailability] = useState<Availability[]>([]);
-  const [loading, setLoading] = useState(false);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(undefined);
   const [selectedSlot, setSelectedSlot] = useState<Availability | null>(null);
   const [selectedProfessional, setSelectedProfessional] = useState<string>('');
   const [isBooking, setIsBooking] = useState(false);
   
-  // Procesar datos de disponibilidad de forma eficiente
-  const { availableDates, slotsByDate } = useMemo(() => 
-    processAvailabilityData(availability), 
-    [availability]
-  );
-  
-  // Obtener disponibilidad cuando se selecciona un profesional
-  useEffect(() => {
-    const fetchAvailability = async () => {
-      if (!selectedProfessional) return;
-      
+  // Usar React Query para obtener la disponibilidad
+  const { 
+    data: availability = [],
+    isLoading: loading
+  } = useQuery({
+    queryKey: ['professionalAvailability', selectedProfessional],
+    queryFn: async () => {
+      if (!selectedProfessional) return [];
       try {
-        setLoading(true);
-        const result = await availabilityService.getAll(selectedProfessional);
-        setAvailability(result);
+        const data = await availabilityService.getAll(selectedProfessional);
+        // Resetear selecciones cuando se obtienen nuevos datos
         setSelectedDate(undefined);
         setSelectedSlot(null);
+        return data;
       } catch (error) {
         console.error('Error fetching availability:', error);
         uiToast({
@@ -134,18 +130,20 @@ const NewAppointment = () => {
           title: 'Error',
           description: 'No se pudo cargar la disponibilidad. Por favor, intenta de nuevo.',
         });
-      } finally {
-        setLoading(false);
+        return [];
       }
-    };
-    
-    fetchAvailability();
-  }, [selectedProfessional, uiToast]);
+    },
+    enabled: !!selectedProfessional,
+    placeholderData: [],
+    refetchOnWindowFocus: false,
+    staleTime: 5 * 60 * 1000, // 5 minutos
+  });
   
-  // Obtener slots para la fecha seleccionada (incluyendo los que están reservados)
-  const slotsForSelectedDate = selectedDate 
-    ? slotsByDate[format(selectedDate, 'yyyy-MM-dd')] || []
-    : [];
+  // Procesar datos de disponibilidad de forma eficiente
+  const { availableDates, slotsByDate } = useMemo(() => 
+    processAvailabilityData(availability), 
+    [availability]
+  );
   
   const handleProfessionalChange = (value: string) => {
     setSelectedProfessional(value);
@@ -329,9 +327,9 @@ const NewAppointment = () => {
                         <div className="ml-10">
                           <div className="border rounded-md p-5 bg-card h-full min-h-[280px] shadow-sm flex flex-col dark:border-gray-700 dark:bg-gray-900">
                             {selectedDate ? (
-                              slotsForSelectedDate.length > 0 ? (
+                              slotsByDate[format(selectedDate, 'yyyy-MM-dd')]?.length > 0 ? (
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                  {slotsForSelectedDate.map(slot => (
+                                  {slotsByDate[format(selectedDate, 'yyyy-MM-dd')].map(slot => (
                                     <button
                                       key={slot.id}
                                       onClick={() => !slot.isBooked && setSelectedSlot(slot)}
