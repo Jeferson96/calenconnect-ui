@@ -17,8 +17,8 @@ import {
 } from '@/components/ui/collapsible';
 import { Professional } from '@/services/api/professionals';
 import { UserIcon } from 'lucide-react';
+import PageTransition from '@/components/layout/PageTransition';
 
-// Interfaz para agrupar citas por profesional
 interface GroupedAppointments {
   [professionalId: string]: {
     professional: Professional | null;
@@ -41,13 +41,10 @@ const AppointmentsPage = () => {
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
   const [cancellingAppointments, setCancellingAppointments] = useState<Record<string, boolean>>({});
   
-  // Función para cancelar una cita
   const handleCancelAppointment = async (appointmentId: string) => {
-    // Si ya se está cancelando, no hacer nada
     if (cancellingAppointments[appointmentId]) return;
     
     try {
-      // Marcar esta cita como "cancelando"
       setCancellingAppointments(prev => ({ ...prev, [appointmentId]: true }));
       
       await cancelAppointment(appointmentId);
@@ -64,20 +61,16 @@ const AppointmentsPage = () => {
         description: 'No se pudo cancelar la cita. Por favor, intenta de nuevo.',
       });
     } finally {
-      // Desmarcar la cita como "cancelando"
       setCancellingAppointments(prev => ({ ...prev, [appointmentId]: false }));
     }
   };
   
-  // Obtenemos la fecha actual sin tiempo (solo fecha)
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   
-  // Filtrar citas por estado y fecha
   const scheduledAppointments = appointments.filter(app => {
     if (app.status !== 'SCHEDULED') return false;
     
-    // Solo incluimos citas de hoy o futuras
     const appointmentDate = new Date(app.appointmentDate);
     appointmentDate.setHours(0, 0, 0, 0);
     return appointmentDate >= today;
@@ -88,13 +81,11 @@ const AppointmentsPage = () => {
   const completedAppointments = appointments.filter(app => app.status === 'COMPLETED');
   const cancelledAppointments = appointments.filter(app => app.status === 'CANCELLED');
   
-  // Función para agrupar citas por profesional
   const groupAppointmentsByProfessional = (appointmentsList: Appointment[]): GroupedAppointments => {
     const grouped: GroupedAppointments = {};
     
     appointmentsList.forEach(appointment => {
       if (!grouped[appointment.professionalId]) {
-        // Buscar el profesional en la lista de profesionales
         const professional = professionals.find(p => p.id === appointment.professionalId) || null;
         
         grouped[appointment.professionalId] = {
@@ -102,7 +93,6 @@ const AppointmentsPage = () => {
           appointments: []
         };
         
-        // Abrir el grupo por defecto si no existe en el estado
         if (expandedGroups[appointment.professionalId] === undefined) {
           setExpandedGroups(prev => ({
             ...prev,
@@ -117,12 +107,10 @@ const AppointmentsPage = () => {
     return grouped;
   };
   
-  // Aplicar agrupación a cada tipo de cita
   const groupedScheduled = groupAppointmentsByProfessional(scheduledAppointments);
   const groupedCompleted = groupAppointmentsByProfessional(completedAppointments);
   const groupedCancelled = groupAppointmentsByProfessional(cancelledAppointments);
   
-  // Manejar cambio de estado de los grupos desplegables
   const toggleGroup = (professionalId: string) => {
     setExpandedGroups(prev => ({
       ...prev,
@@ -132,7 +120,6 @@ const AppointmentsPage = () => {
   
   const loading = appointmentsLoading || professionalsLoading;
   
-  // Renderizar las citas agrupadas
   const renderGroupedAppointments = (
     grouped: GroupedAppointments, 
     onCancel?: (appointmentId: string) => void
@@ -175,84 +162,86 @@ const AppointmentsPage = () => {
   
   return (
     <DashboardLayout>
-      <div className="space-y-6">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">Mis Citas</h1>
-            <p className="text-muted-foreground">
-              Gestiona tus citas médicas programadas.
-            </p>
+      <PageTransition>
+        <div className="space-y-6">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div>
+              <h1 className="text-2xl font-bold tracking-tight">Mis Citas</h1>
+              <p className="text-muted-foreground">
+                Gestiona tus citas médicas programadas.
+              </p>
+            </div>
+            <Link to="/dashboard/appointments/new">
+              <Button>
+                <PlusIcon className="h-4 w-4 mr-2" />
+                Nueva Cita
+              </Button>
+            </Link>
           </div>
-          <Link to="/dashboard/appointments/new">
-            <Button>
-              <PlusIcon className="h-4 w-4 mr-2" />
-              Nueva Cita
-            </Button>
-          </Link>
+          
+          <Tabs defaultValue="scheduled" className="w-full">
+            <TabsList className="mb-4">
+              <TabsTrigger value="scheduled">
+                Programadas ({scheduledAppointments.length})
+              </TabsTrigger>
+              <TabsTrigger value="completed">
+                Completadas ({completedAppointments.length})
+              </TabsTrigger>
+              <TabsTrigger value="cancelled">
+                Canceladas ({cancelledAppointments.length})
+              </TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="scheduled">
+              {loading ? (
+                <div className="p-8 text-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-secondary mx-auto"></div>
+                  <p className="mt-2 text-sm text-muted-foreground">Cargando citas...</p>
+                </div>
+              ) : scheduledAppointments.length > 0 ? (
+                renderGroupedAppointments(groupedScheduled, handleCancelAppointment)
+              ) : (
+                <div className="bg-muted/40 rounded-lg p-8 text-center">
+                  <p className="text-muted-foreground">No tienes citas programadas.</p>
+                  <Link to="/dashboard/appointments/new">
+                    <Button className="mt-4">Agendar una Cita</Button>
+                  </Link>
+                </div>
+              )}
+            </TabsContent>
+            
+            <TabsContent value="completed">
+              {loading ? (
+                <div className="p-8 text-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-secondary mx-auto"></div>
+                  <p className="mt-2 text-sm text-muted-foreground">Cargando citas...</p>
+                </div>
+              ) : completedAppointments.length > 0 ? (
+                renderGroupedAppointments(groupedCompleted)
+              ) : (
+                <div className="bg-muted/40 rounded-lg p-8 text-center">
+                  <p className="text-muted-foreground">No tienes citas completadas.</p>
+                </div>
+              )}
+            </TabsContent>
+            
+            <TabsContent value="cancelled">
+              {loading ? (
+                <div className="p-8 text-center">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-secondary mx-auto"></div>
+                  <p className="mt-2 text-sm text-muted-foreground">Cargando citas...</p>
+                </div>
+              ) : cancelledAppointments.length > 0 ? (
+                renderGroupedAppointments(groupedCancelled)
+              ) : (
+                <div className="bg-muted/40 rounded-lg p-8 text-center">
+                  <p className="text-muted-foreground">No tienes citas canceladas.</p>
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
         </div>
-        
-        <Tabs defaultValue="scheduled" className="w-full">
-          <TabsList className="mb-4">
-            <TabsTrigger value="scheduled">
-              Programadas ({scheduledAppointments.length})
-            </TabsTrigger>
-            <TabsTrigger value="completed">
-              Completadas ({completedAppointments.length})
-            </TabsTrigger>
-            <TabsTrigger value="cancelled">
-              Canceladas ({cancelledAppointments.length})
-            </TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="scheduled">
-            {loading ? (
-              <div className="p-8 text-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-secondary mx-auto"></div>
-                <p className="mt-2 text-sm text-muted-foreground">Cargando citas...</p>
-              </div>
-            ) : scheduledAppointments.length > 0 ? (
-              renderGroupedAppointments(groupedScheduled, handleCancelAppointment)
-            ) : (
-              <div className="bg-muted/40 rounded-lg p-8 text-center">
-                <p className="text-muted-foreground">No tienes citas programadas.</p>
-                <Link to="/dashboard/appointments/new">
-                  <Button className="mt-4">Agendar una Cita</Button>
-                </Link>
-              </div>
-            )}
-          </TabsContent>
-          
-          <TabsContent value="completed">
-            {loading ? (
-              <div className="p-8 text-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-secondary mx-auto"></div>
-                <p className="mt-2 text-sm text-muted-foreground">Cargando citas...</p>
-              </div>
-            ) : completedAppointments.length > 0 ? (
-              renderGroupedAppointments(groupedCompleted)
-            ) : (
-              <div className="bg-muted/40 rounded-lg p-8 text-center">
-                <p className="text-muted-foreground">No tienes citas completadas.</p>
-              </div>
-            )}
-          </TabsContent>
-          
-          <TabsContent value="cancelled">
-            {loading ? (
-              <div className="p-8 text-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-secondary mx-auto"></div>
-                <p className="mt-2 text-sm text-muted-foreground">Cargando citas...</p>
-              </div>
-            ) : cancelledAppointments.length > 0 ? (
-              renderGroupedAppointments(groupedCancelled)
-            ) : (
-              <div className="bg-muted/40 rounded-lg p-8 text-center">
-                <p className="text-muted-foreground">No tienes citas canceladas.</p>
-              </div>
-            )}
-          </TabsContent>
-        </Tabs>
-      </div>
+      </PageTransition>
     </DashboardLayout>
   );
 };
@@ -265,14 +254,12 @@ interface AppointmentCardProps {
 }
 
 const AppointmentCard = ({ appointment, professionalName, onCancel, isCancelling }: AppointmentCardProps) => {
-  // Determinar color según el estado
   const statusColor = {
     SCHEDULED: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
     COMPLETED: "bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300",
     CANCELLED: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-300"
   }[appointment.status];
   
-  // Texto del estado
   const statusText = {
     SCHEDULED: "Programada",
     COMPLETED: "Completada",

@@ -10,6 +10,7 @@ import { ArrowLeftIcon, CalendarIcon, ClockIcon, UserIcon, Loader2 } from 'lucid
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { useAppointments } from '@/contexts/AppointmentsContext';
+import PageTransition from '@/components/layout/PageTransition';
 
 const getStatusColor = (status: string) => {
   switch (status) {
@@ -47,7 +48,6 @@ const AppointmentDetail = () => {
   const [loading, setLoading] = useState(true);
   const [isCancelling, setIsCancelling] = useState(false);
   
-  // Obtener la cita específica del contexto global
   useEffect(() => {
     if (!id || appLoading) return;
     
@@ -74,7 +74,6 @@ const AppointmentDetail = () => {
       
       toast.success('Cita cancelada correctamente');
       
-      // Actualizar la cita en el estado local
       setAppointment({
         ...appointment,
         status: 'CANCELLED'
@@ -94,9 +93,11 @@ const AppointmentDetail = () => {
   if (loading || appLoading) {
     return (
       <DashboardLayout>
-        <div className="flex items-center justify-center h-[calc(100vh-200px)]">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
-        </div>
+        <PageTransition>
+          <div className="flex items-center justify-center h-[calc(100vh-200px)]">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+          </div>
+        </PageTransition>
       </DashboardLayout>
     );
   }
@@ -104,88 +105,92 @@ const AppointmentDetail = () => {
   if (!appointment) {
     return (
       <DashboardLayout>
-        <div className="text-center">
-          <h2 className="text-xl font-bold mb-2">Cita no encontrada</h2>
-          <p className="text-muted-foreground mb-4">La cita que buscas no existe o no tienes acceso a ella.</p>
-          <Link to="/dashboard/appointments">
-            <Button>Volver a mis citas</Button>
-          </Link>
-        </div>
+        <PageTransition>
+          <div className="text-center">
+            <h2 className="text-xl font-bold mb-2">Cita no encontrada</h2>
+            <p className="text-muted-foreground mb-4">La cita que buscas no existe o no tienes acceso a ella.</p>
+            <Link to="/dashboard/appointments">
+              <Button>Volver a mis citas</Button>
+            </Link>
+          </div>
+        </PageTransition>
       </DashboardLayout>
     );
   }
   
   return (
     <DashboardLayout>
-      <div className="space-y-6">
-        <div className="flex items-center mb-6">
-          <Button variant="outline" size="sm" className="mr-4" asChild>
-            <Link to="/dashboard/appointments">
-              <ArrowLeftIcon className="h-4 w-4 mr-2" />
-              Volver
-            </Link>
-          </Button>
-          <h1 className="text-2xl font-bold tracking-tight">Detalles de la Cita</h1>
-        </div>
-        
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>Cita #{appointment?.id?.slice(0, 8)}</CardTitle>
-              <Badge className={getStatusColor(appointment?.status || '')}>
-                {getStatusText(appointment?.status || '')}
-              </Badge>
-            </div>
-            <CardDescription>
-              Información detallada de tu cita programada
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="flex flex-col space-y-1">
-                <span className="text-sm font-medium text-muted-foreground">Fecha y Hora</span>
-                <div className="flex items-center border p-3 rounded-md">
-                  <CalendarIcon className="h-4 w-4 mr-2 text-muted-foreground" />
-                  <span>{appointment ? formatDate(appointment.appointmentDate) : '-'}</span>
+      <PageTransition>
+        <div className="space-y-6">
+          <div className="flex items-center mb-6">
+            <Button variant="outline" size="sm" className="mr-4" asChild>
+              <Link to="/dashboard/appointments">
+                <ArrowLeftIcon className="h-4 w-4 mr-2" />
+                Volver
+              </Link>
+            </Button>
+            <h1 className="text-2xl font-bold tracking-tight">Detalles de la Cita</h1>
+          </div>
+          
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle>Cita #{appointment?.id?.slice(0, 8)}</CardTitle>
+                <Badge className={getStatusColor(appointment?.status || '')}>
+                  {getStatusText(appointment?.status || '')}
+                </Badge>
+              </div>
+              <CardDescription>
+                Información detallada de tu cita programada
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex flex-col space-y-1">
+                  <span className="text-sm font-medium text-muted-foreground">Fecha y Hora</span>
+                  <div className="flex items-center border p-3 rounded-md">
+                    <CalendarIcon className="h-4 w-4 mr-2 text-muted-foreground" />
+                    <span>{appointment ? formatDate(appointment.appointmentDate) : '-'}</span>
+                  </div>
+                </div>
+                
+                <div className="flex flex-col space-y-1">
+                  <span className="text-sm font-medium text-muted-foreground">Profesional</span>
+                  <div className="flex items-center border p-3 rounded-md">
+                    <UserIcon className="h-4 w-4 mr-2 text-muted-foreground" />
+                    <span>Dr. {appointment?.professionalId?.slice(0, 8)}</span>
+                  </div>
                 </div>
               </div>
               
               <div className="flex flex-col space-y-1">
-                <span className="text-sm font-medium text-muted-foreground">Profesional</span>
+                <span className="text-sm font-medium text-muted-foreground">ID de la Cita</span>
                 <div className="flex items-center border p-3 rounded-md">
-                  <UserIcon className="h-4 w-4 mr-2 text-muted-foreground" />
-                  <span>Dr. {appointment?.professionalId?.slice(0, 8)}</span>
+                  <span className="font-mono text-sm">{appointment?.id}</span>
                 </div>
               </div>
-            </div>
-            
-            <div className="flex flex-col space-y-1">
-              <span className="text-sm font-medium text-muted-foreground">ID de la Cita</span>
-              <div className="flex items-center border p-3 rounded-md">
-                <span className="font-mono text-sm">{appointment?.id}</span>
-              </div>
-            </div>
-          </CardContent>
-          <CardFooter className="flex justify-end space-x-2">
-            {appointment?.status === 'SCHEDULED' && (
-              <Button 
-                variant="destructive" 
-                onClick={handleCancel}
-                disabled={isCancelling}
-              >
-                {isCancelling ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden="true" />
-                    <span>Cancelando...</span>
-                  </>
-                ) : (
-                  'Cancelar Cita'
-                )}
-              </Button>
-            )}
-          </CardFooter>
-        </Card>
-      </div>
+            </CardContent>
+            <CardFooter className="flex justify-end space-x-2">
+              {appointment?.status === 'SCHEDULED' && (
+                <Button 
+                  variant="destructive" 
+                  onClick={handleCancel}
+                  disabled={isCancelling}
+                >
+                  {isCancelling ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden="true" />
+                      <span>Cancelando...</span>
+                    </>
+                  ) : (
+                    'Cancelar Cita'
+                  )}
+                </Button>
+              )}
+            </CardFooter>
+          </Card>
+        </div>
+      </PageTransition>
     </DashboardLayout>
   );
 };
