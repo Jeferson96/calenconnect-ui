@@ -19,8 +19,8 @@ const Dashboard = () => {
   } = useAppointments();
   
   return (
-    <PageTransition>
-      <DashboardLayout>
+    <DashboardLayout>
+      <PageTransition>
         <div className="space-y-6">
           <h1 className="text-2xl font-bold tracking-tight">Bienvenido, {authState.user?.firstName}</h1>
           <p className="text-muted-foreground">
@@ -79,8 +79,8 @@ const Dashboard = () => {
             )}
           </div>
         </div>
-      </DashboardLayout>
-    </PageTransition>
+      </PageTransition>
+    </DashboardLayout>
   );
 };
 

@@ -8,27 +8,28 @@ interface PageTransitionProps {
 }
 
 /**
- * Componente para aplicar animaciones de transición a las páginas
- * Envuelve el contenido de la página con animaciones fade-in y slide-up
+ * Componente para aplicar animaciones de transición al contenido de las páginas
+ * Envuelve el contenido principal con animaciones fade-in y slide-up
  */
 const PageTransition = ({ children, className = "" }: PageTransitionProps) => {
   const pageVariants = {
     initial: {
       opacity: 0,
-      y: 20,
+      y: 10,
     },
     enter: {
       opacity: 1,
       y: 0,
       transition: {
-        duration: 0.4,
-        ease: [0.61, 1, 0.88, 1],
+        duration: 0.3,
+        ease: [0.4, 0, 0.2, 1],
+        when: "beforeChildren",
         staggerChildren: 0.1,
       },
     },
     exit: {
       opacity: 0,
-      y: 20,
+      y: 10,
       transition: {
         duration: 0.2,
       },
