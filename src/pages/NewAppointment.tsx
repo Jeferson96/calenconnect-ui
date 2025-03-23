@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import { Button } from '@/components/ui/button';
-import { ArrowLeftIcon, Loader2, CalendarIcon, ClockIcon, UserIcon } from 'lucide-react';
+import { ArrowLeftIcon, Loader2, CalendarIcon, ClockIcon, UserIcon, CalendarCheck } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { appointmentsService, availabilityService } from '@/services/api';
 import { Availability } from '@/types/api';
@@ -207,7 +207,7 @@ const NewAppointment = () => {
             <div className="space-y-8">
               {professionalsLoading ? (
                 <div className="p-8 text-center">
-                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-secondary mx-auto" aria-hidden="true"></div>
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto" aria-hidden="true"></div>
                   <p className="mt-2 text-sm text-muted-foreground" aria-live="polite">Cargando profesionales...</p>
                 </div>
               ) : (
@@ -215,11 +215,11 @@ const NewAppointment = () => {
                   {/* Paso 1: Selección de profesional */}
                   <div className="space-y-4">
                     <div className="flex items-center space-x-2">
-                      <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary-foreground">
+                      <div className="flex items-center justify-center w-8 h-8 rounded-md bg-primary text-primary-foreground shadow-sm dark:bg-primary dark:text-primary-foreground">
                         <span className="font-bold">1</span>
                       </div>
                       <h3 className="text-lg font-medium flex items-center">
-                        <UserIcon className="h-5 w-5 mr-2 text-primary dark:text-primary-foreground/90" aria-hidden="true" />
+                        <UserIcon className="h-5 w-5 mr-2 text-primary" />
                         Selecciona un profesional
                       </h3>
                     </div>
@@ -248,22 +248,22 @@ const NewAppointment = () => {
                       {/* Paso 2: Selección de fecha */}
                       <div className="space-y-4">
                         <div className="flex items-center space-x-2">
-                          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary-foreground">
+                          <div className="flex items-center justify-center w-8 h-8 rounded-md bg-primary text-primary-foreground shadow-sm dark:bg-primary dark:text-primary-foreground">
                             <span className="font-bold">2</span>
                           </div>
                           <h3 className="text-lg font-medium flex items-center">
-                            <CalendarIcon className="h-5 w-5 mr-2 text-primary dark:text-primary-foreground/90" aria-hidden="true" />
+                            <CalendarIcon className="h-5 w-5 mr-2 text-primary" />
                             Selecciona una fecha
                           </h3>
                         </div>
                         <div className="ml-10">
                           {loading ? (
                             <div className="p-8 text-center rounded-md border border-border bg-card/50 dark:border-gray-700">
-                              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-secondary mx-auto" aria-hidden="true"></div>
+                              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto" aria-hidden="true"></div>
                               <p className="mt-2 text-sm text-muted-foreground" aria-live="polite">Cargando disponibilidad...</p>
                             </div>
                           ) : (
-                            <div className="border-0 rounded-lg bg-background shadow-sm transition-all dark:bg-gray-900 flex justify-center items-center py-4">
+                            <div className="border rounded-lg bg-card shadow-sm transition-all dark:bg-gray-900 flex justify-center items-center py-4">
                               <Calendar
                                 mode="single"
                                 selected={selectedDate}
@@ -289,20 +289,20 @@ const NewAppointment = () => {
                                   }
                                 }}
                                 modifiersClassNames={{
-                                  available: "bg-primary/20 text-primary font-medium rounded-full"
+                                  available: "bg-primary/20 text-primary font-medium"
                                 }}
                                 classNames={{
-                                  day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100 hover:bg-primary/10 hover:text-primary rounded-full transition-colors",
-                                  day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground dark:bg-primary dark:text-primary-foreground rounded-full",
-                                  day_today: "bg-accent text-accent-foreground dark:bg-gray-700 dark:text-gray-200 rounded-full",
-                                  day_disabled: "text-muted-foreground opacity-50 dark:text-gray-500 dark:opacity-40 rounded-full",
-                                  head_cell: "text-muted-foreground rounded-md w-9 font-normal text-[0.8rem] dark:text-gray-400 lowercase",
+                                  day: "h-10 w-10 p-0 font-medium aria-selected:opacity-100 hover:bg-primary/10 hover:text-primary rounded-md transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
+                                  day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground dark:bg-primary dark:text-primary-foreground rounded-md border-none shadow-sm",
+                                  day_today: "bg-accent text-accent-foreground dark:bg-accent/20 dark:text-accent-foreground rounded-md font-bold border border-border",
+                                  day_disabled: "text-muted-foreground opacity-50 dark:text-gray-500 dark:opacity-40 rounded-md",
+                                  head_cell: "text-muted-foreground rounded-md w-10 font-medium text-[0.8rem] dark:text-gray-400 capitalize",
                                   nav: "space-x-1 flex items-center justify-between px-2",
-                                  caption: "flex justify-center pt-1 relative items-center mb-2",
-                                  caption_label: "text-base font-medium lowercase dark:text-gray-200",
-                                  nav_button: "h-7 w-7 bg-transparent p-0 opacity-70 hover:opacity-100 dark:text-gray-300 dark:hover:text-white",
+                                  caption: "flex justify-center pt-1 relative items-center mb-4",
+                                  caption_label: "text-base font-semibold capitalize dark:text-gray-200",
+                                  nav_button: "h-9 w-9 bg-card p-0 rounded-md border border-border opacity-70 hover:opacity-100 hover:bg-accent/20 dark:border-gray-600 dark:text-gray-300 dark:hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                                   table: "w-full border-collapse space-y-1 max-w-[350px]",
-                                  cell: "h-9 w-9 text-center text-sm p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-accent/50 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
+                                  cell: "h-10 w-10 text-center text-sm p-0 relative [&:has([aria-selected].day-range-end)]:rounded-r-md [&:has([aria-selected].day-outside)]:bg-accent/50 [&:has([aria-selected])]:bg-accent first:[&:has([aria-selected])]:rounded-l-md last:[&:has([aria-selected])]:rounded-r-md focus-within:relative focus-within:z-20",
                                   row: "flex w-full mt-2"
                                 }}
                                 ISOWeek
@@ -316,11 +316,11 @@ const NewAppointment = () => {
                       {/* Paso 3: Selección de horario */}
                       <div className="space-y-4">
                         <div className="flex items-center space-x-2">
-                          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary-foreground">
+                          <div className="flex items-center justify-center w-8 h-8 rounded-md bg-primary text-primary-foreground shadow-sm dark:bg-primary dark:text-primary-foreground">
                             <span className="font-bold">3</span>
                           </div>
                           <h3 className="text-lg font-medium flex items-center">
-                            <ClockIcon className="h-5 w-5 mr-2 text-primary dark:text-primary-foreground/90" aria-hidden="true" />
+                            <ClockIcon className="h-5 w-5 mr-2 text-primary" />
                             Selecciona un horario
                           </h3>
                         </div>
@@ -337,23 +337,27 @@ const NewAppointment = () => {
                                       aria-pressed={selectedSlot?.id === slot.id}
                                       aria-label={`Horario ${formatTimeRange(slot.startTime, slot.endTime)}${slot.isBooked ? ', no disponible' : ''}`}
                                       className={cn(
-                                        "relative group flex flex-col justify-center items-center p-4 rounded-md transition-all focus:outline-none focus:ring-2 focus:ring-primary focus-visible:ring-2",
+                                        "relative group flex flex-col justify-center items-center p-4 rounded-md transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2",
                                         slot.isBooked
-                                          ? "bg-red-50 text-muted-foreground cursor-not-allowed opacity-70 dark:bg-red-950/30 dark:text-gray-400"
+                                          ? "bg-destructive/10 text-muted-foreground cursor-not-allowed opacity-70 dark:bg-destructive/20 dark:text-gray-400 border border-destructive/30"
                                           : selectedSlot?.id === slot.id
-                                            ? "bg-primary/20 text-primary ring-2 ring-primary/50 dark:ring-primary/30 dark:bg-primary dark:text-primary-foreground"
-                                            : "bg-background hover:bg-primary/10 text-foreground border border-border dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-primary/10 dark:text-gray-200"
+                                            ? "bg-primary text-primary-foreground shadow-sm dark:bg-primary dark:text-primary-foreground"
+                                            : "bg-card hover:bg-primary/10 text-foreground border border-border shadow-sm dark:border-gray-700 dark:bg-gray-800 dark:hover:bg-primary/10 dark:text-gray-200"
                                       )}
                                     >
-                                      <span className="font-semibold">
+                                      <span className={cn(
+                                        "font-semibold",
+                                        selectedSlot?.id === slot.id ? "text-primary-foreground dark:text-primary-foreground" : ""
+                                      )}>
                                         {formatTimeRange(slot.startTime, slot.endTime)}
                                       </span>
                                       {slot.isBooked && (
-                                        <span className="mt-1 text-xs opacity-80">
-                                          (No disponible)
-                                        </span>
+                                        <div className="flex items-center mt-1 text-xs opacity-80">
+                                          <span className="inline-block w-2 h-2 bg-destructive rounded-full mr-1.5"></span>
+                                          <span>No disponible</span>
+                                        </div>
                                       )}
-                                      {!slot.isBooked && selectedSlot?.id !== slot.id && (
+                                      {!slot.isBooked && !selectedSlot?.id && (
                                         <span className="absolute inset-0 bg-primary/10 opacity-0 group-hover:opacity-100 rounded-md transition-opacity dark:bg-primary/5" aria-hidden="true"></span>
                                       )}
                                     </button>
@@ -361,14 +365,20 @@ const NewAppointment = () => {
                                 </div>
                               ) : (
                                 <div className="flex-1 flex items-center justify-center">
-                                  <p className="text-center py-8 text-muted-foreground" role="status">
+                                  <p className="text-center py-8 text-muted-foreground flex flex-col items-center" role="status">
+                                    <span className="mb-2 text-muted-foreground/60">
+                                      <CalendarIcon className="h-10 w-10" />
+                                    </span>
                                     No hay horarios configurados para esta fecha
                                   </p>
                                 </div>
                               )
                             ) : (
                               <div className="flex-1 flex items-center justify-center">
-                                <p className="text-center py-8 text-muted-foreground" role="status">
+                                <p className="text-center py-8 text-muted-foreground flex flex-col items-center" role="status">
+                                  <span className="mb-2 text-muted-foreground/60">
+                                    <ClockIcon className="h-10 w-10" />
+                                  </span>
                                   Selecciona una fecha primero
                                 </p>
                               </div>
@@ -382,19 +392,22 @@ const NewAppointment = () => {
                   {/* Resumen y botón de agendar */}
                   <div className="flex flex-col space-y-4 pt-4">
                     {selectedSlot && (
-                      <div className="bg-accent/30 p-4 rounded-md border border-accent-foreground/10 animate-fade-in dark:bg-gray-800/50 dark:border-gray-700">
-                        <h4 className="font-medium mb-2 dark:text-gray-200">Resumen de tu cita</h4>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                          <div className="flex items-center">
-                            <UserIcon className="h-4 w-4 mr-2 text-primary dark:text-primary-foreground/90" aria-hidden="true" />
+                      <div className="bg-card border border-border p-5 rounded-md shadow-sm animate-fade-in dark:bg-gray-900/80 dark:border-gray-700">
+                        <h4 className="font-medium mb-3 text-lg flex items-center gap-2 text-foreground dark:text-gray-200">
+                          <CalendarCheck className="h-5 w-5 text-primary" />
+                          Resumen de tu cita
+                        </h4>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div className="flex items-center bg-primary/5 p-3 rounded-md border border-primary/20 shadow-sm dark:bg-primary/10 dark:border-primary/20">
+                            <UserIcon className="h-4 w-4 mr-2 text-primary" />
                             <span className="dark:text-gray-300">{professionals.find(p => p.id === selectedProfessional)?.fullName}</span>
                           </div>
-                          <div className="flex items-center">
-                            <CalendarIcon className="h-4 w-4 mr-2 text-primary dark:text-primary-foreground/90" aria-hidden="true" />
+                          <div className="flex items-center bg-primary/5 p-3 rounded-md border border-primary/20 shadow-sm dark:bg-primary/10 dark:border-primary/20">
+                            <CalendarIcon className="h-4 w-4 mr-2 text-primary" />
                             <span className="dark:text-gray-300">{selectedDate && format(selectedDate, 'eeee, d MMMM yyyy', { locale: es })}</span>
                           </div>
-                          <div className="flex items-center">
-                            <ClockIcon className="h-4 w-4 mr-2 text-primary dark:text-primary-foreground/90" aria-hidden="true" />
+                          <div className="flex items-center bg-primary/5 p-3 rounded-md border border-primary/20 shadow-sm dark:bg-primary/10 dark:border-primary/20">
+                            <ClockIcon className="h-4 w-4 mr-2 text-primary" />
                             <span className="dark:text-gray-300">{formatTimeRange(selectedSlot.startTime, selectedSlot.endTime)}</span>
                           </div>
                         </div>
@@ -403,9 +416,10 @@ const NewAppointment = () => {
                     
                     <div className="flex justify-end mt-4">
                       <Button 
+                        variant="default"
                         disabled={!selectedSlot || loading || selectedSlot?.isBooked || isBooking} 
                         onClick={handleBookAppointment}
-                        className="px-8 py-2 font-medium bg-primary text-primary-foreground hover:bg-primary/90 dark:bg-primary dark:hover:bg-primary/90 dark:text-primary-foreground transition-colors relative min-w-[180px] focus:ring-2 focus:ring-primary/50 dark:focus:ring-primary/30"
+                        className="px-8 py-2 font-medium relative min-w-[180px]"
                         aria-live="polite"
                       >
                         {isBooking ? (
@@ -414,10 +428,7 @@ const NewAppointment = () => {
                             <span>Agendando...</span>
                           </>
                         ) : (
-                          'Agendar Cita'
-                        )}
-                        {isBooking && (
-                          <span className="absolute inset-0 bg-transparent" aria-hidden="true" />
+                          "Agendar Cita"
                         )}
                       </Button>
                     </div>

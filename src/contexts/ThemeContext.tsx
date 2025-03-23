@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 
 type Theme = 'light' | 'dark';
@@ -11,7 +10,7 @@ interface ThemeContextProps {
 const ThemeContext = createContext<ThemeContextProps | undefined>(undefined);
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [theme, setTheme] = useState<Theme>('light');
+  const [theme, setTheme] = useState<Theme>('dark');
 
   useEffect(() => {
     // Verificar si hay un tema guardado en localStorage
@@ -22,11 +21,30 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       setTheme(savedTheme);
       document.documentElement.classList.toggle('dark', savedTheme === 'dark');
     } else {
-      // Si no hay tema guardado, verificar preferencia del sistema
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-      setTheme(prefersDark ? 'dark' : 'light');
-      document.documentElement.classList.toggle('dark', prefersDark);
+      // Si no hay tema guardado, usar 'dark' por defecto
+      // Ya no usamos prefers-color-scheme como criterio
+      setTheme('dark');
+      document.documentElement.classList.add('dark');
+      // Guardar preferencia en localStorage
+      localStorage.setItem('theme', 'dark');
     }
+
+    // Aplicar inmediatamente el tema para evitar parpadeos
+    const applyTheme = () => {
+      const currentTheme = localStorage.getItem('theme') as Theme || 'dark';
+      document.documentElement.classList.toggle('dark', currentTheme === 'dark');
+    };
+    
+    // Ejecutar antes de que el DOM se renderice por completo
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', applyTheme);
+    } else {
+      applyTheme();
+    }
+    
+    return () => {
+      document.removeEventListener('DOMContentLoaded', applyTheme);
+    };
   }, []);
 
   const toggleTheme = () => {

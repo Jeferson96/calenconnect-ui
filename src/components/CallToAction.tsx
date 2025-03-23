@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowRight } from "lucide-react";
@@ -51,7 +50,7 @@ const CallToAction = () => {
           </p>
           
           <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <Button size="lg" className="bg-secondary hover:bg-secondary/90 text-primary-foreground">
+            <Button size="lg" variant="secondary">
               Registrarme Gratis <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
             <Button size="lg" variant="outline" className="border-white/30 text-white hover:bg-white/10">

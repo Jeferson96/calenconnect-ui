@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -218,6 +217,7 @@ const RegisterForm = () => {
           
           <Button 
             type="submit" 
+            variant="default"
             className="w-full mt-6" 
             disabled={form.formState.isSubmitting || !connectionStatus}
           >

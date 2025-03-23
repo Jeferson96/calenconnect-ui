@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Check, Clock, Calendar, Bell, ArrowRight, UserCircle, CalendarRange } from "lucide-react";
@@ -122,7 +121,7 @@ const HowItWorks = () => {
           ref={(el) => elementsRef.current[3] = el}
           className="opacity-0 flex justify-center mt-12"
         >
-          <Button size="lg" className="bg-secondary hover:bg-secondary/90 text-primary-foreground">
+          <Button size="lg" variant="secondary">
             Comenzar Ahora <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         </div>

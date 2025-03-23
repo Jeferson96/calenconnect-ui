@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Clock, Bell, Layout, Calendar, ArrowRight } from "lucide-react";
@@ -80,7 +79,7 @@ const Benefits = () => {
           ref={(el) => elementsRef.current[5] = el}
           className="opacity-0 flex justify-center mt-12"
         >
-          <Button variant="outline" className="border-secondary hover:bg-secondary/10">
+          <Button variant="outline">
             Descubrir Más <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         </div>

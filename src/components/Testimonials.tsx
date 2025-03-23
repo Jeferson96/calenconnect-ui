@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Star } from "lucide-react";
@@ -84,7 +83,7 @@ const Testimonials = () => {
           ref={(el) => elementsRef.current[5] = el}
           className="opacity-0 flex justify-center mt-12"
         >
-          <Button variant="outline" className="border-secondary hover:bg-secondary/10">
+          <Button variant="outline">
             Ver Más Opiniones <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         </div>

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import { Button } from '@/components/ui/button';
@@ -92,7 +91,7 @@ const ProfilePage = () => {
                   </div>
                   
                   <div className="pt-4">
-                    <Button>Editar Perfil</Button>
+                    <Button variant="default">Editar Perfil</Button>
                   </div>
                 </CardContent>
               </Card>

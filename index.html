@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="es">
   <head>
@@ -9,6 +8,19 @@
     <meta name="author" content="CalenConnect" />
     <meta property="og:image" content="/og-image.png" />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+    <!-- Script para aplicar el tema oscuro inmediatamente -->
+    <script>
+      (function() {
+        // Verificar la preferencia del tema guardada en localStorage
+        var savedTheme = localStorage.getItem('theme');
+        
+        // Si no hay tema guardado o si es 'dark', aplicar el tema oscuro
+        if (!savedTheme || savedTheme === 'dark') {
+          document.documentElement.classList.add('dark');
+          localStorage.setItem('theme', 'dark');
+        }
+      })();
+    </script>
   </head>
 
   <body>

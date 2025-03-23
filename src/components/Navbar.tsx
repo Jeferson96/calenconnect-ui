@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -47,13 +46,12 @@ const Navbar = () => {
           {authState.user ? (
             <>
               <Link to="/dashboard">
-                <Button variant="outline" className="border-secondary text-foreground hover:bg-secondary/10">
+                <Button variant="outline">
                   Mi Dashboard
                 </Button>
               </Link>
               <Button 
                 variant="outline" 
-                className="border-secondary text-foreground hover:bg-secondary/10"
                 onClick={() => signOut()}
               >
                 Cerrar Sesión
@@ -62,12 +60,12 @@ const Navbar = () => {
           ) : (
             <>
               <Link to="/login">
-                <Button variant="outline" className="border-secondary text-foreground hover:bg-secondary/10">
+                <Button variant="outline">
                   Iniciar Sesión
                 </Button>
               </Link>
               <Link to="/register">
-                <Button className="bg-secondary text-primary hover:bg-secondary/90">
+                <Button variant="secondary">
                   Registrarse
                 </Button>
               </Link>
@@ -94,13 +92,13 @@ const Navbar = () => {
               {authState.user ? (
                 <>
                   <Link to="/dashboard" onClick={() => setIsOpen(false)}>
-                    <Button variant="outline" className="border-secondary text-foreground hover:bg-secondary/10 w-full">
+                    <Button variant="outline" className="w-full">
                       Mi Dashboard
                     </Button>
                   </Link>
                   <Button 
                     variant="outline" 
-                    className="border-secondary text-foreground hover:bg-secondary/10 w-full"
+                    className="w-full"
                     onClick={() => {
                       signOut();
                       setIsOpen(false);
@@ -112,12 +110,12 @@ const Navbar = () => {
               ) : (
                 <>
                   <Link to="/login" onClick={() => setIsOpen(false)}>
-                    <Button variant="outline" className="border-secondary text-foreground hover:bg-secondary/10 w-full">
+                    <Button variant="outline" className="w-full">
                       Iniciar Sesión
                     </Button>
                   </Link>
                   <Link to="/register" onClick={() => setIsOpen(false)}>
-                    <Button className="bg-secondary text-primary hover:bg-secondary/90 w-full">
+                    <Button variant="secondary" className="w-full">
                       Registrarse
                     </Button>
                   </Link>

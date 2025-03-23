@@ -119,7 +119,7 @@ const ProfessionalDashboard = () => {
           <div className="bg-muted/40 rounded-lg p-8 text-center">
             <p className="text-muted-foreground">No has configurado tu disponibilidad aún.</p>
             <Link to="/dashboard/availability">
-              <Button className="mt-4">Configurar Disponibilidad</Button>
+              <Button variant="default" className="mt-4">Configurar Disponibilidad</Button>
             </Link>
           </div>
         )}

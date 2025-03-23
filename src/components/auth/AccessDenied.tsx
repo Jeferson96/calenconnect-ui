@@ -122,7 +122,7 @@ const AccessDenied = () => {
           variants={itemVariants}
           custom={5}
         >
-          <Button asChild>
+          <Button variant="default" asChild>
             <Link to="/dashboard">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Volver al Dashboard

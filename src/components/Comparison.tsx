@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Check, X } from "lucide-react";
@@ -99,7 +98,7 @@ const Comparison = () => {
           ref={(el) => elementsRef.current[2] = el}
           className="opacity-0 flex justify-center mt-12"
         >
-          <Button className="bg-secondary hover:bg-secondary/90 text-primary-foreground">
+          <Button variant="secondary">
             Pruébalo Gratis <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         </div>

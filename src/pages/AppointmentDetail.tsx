@@ -110,7 +110,7 @@ const AppointmentDetail = () => {
             <h2 className="text-xl font-bold mb-2">Cita no encontrada</h2>
             <p className="text-muted-foreground mb-4">La cita que buscas no existe o no tienes acceso a ella.</p>
             <Link to="/dashboard/appointments">
-              <Button>Volver a mis citas</Button>
+              <Button variant="default">Volver a mis citas</Button>
             </Link>
           </div>
         </PageTransition>

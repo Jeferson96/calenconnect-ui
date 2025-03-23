@@ -79,7 +79,7 @@ const PatientDashboard = () => {
           <div className="bg-muted/40 rounded-lg p-8 text-center">
             <p className="text-muted-foreground">No tienes citas programadas.</p>
             <Link to="/dashboard/appointments/new">
-              <Button className="mt-4">Agendar una Cita</Button>
+              <Button variant="default" className="mt-4">Agendar una Cita</Button>
             </Link>
           </div>
         )}

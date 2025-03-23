@@ -67,10 +67,10 @@ const Hero = () => {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 pt-4 w-full sm:w-auto">
-            <Button size="lg" className="bg-secondary hover:bg-secondary/90 text-primary-foreground">
+            <Button size="lg" variant="default">
               Agendar una Cita <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
-            <Button size="lg" variant="outline" className="border-secondary hover:bg-secondary/10">
+            <Button size="lg" variant="outline">
               Gestionar mi Disponibilidad
             </Button>
           </div>

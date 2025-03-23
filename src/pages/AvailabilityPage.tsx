@@ -68,7 +68,7 @@ const AvailabilityPage = () => {
                 Gestiona tus horarios disponibles para citas.
               </p>
             </div>
-            <Button>
+            <Button variant="default">
               <PlusIcon className="h-4 w-4 mr-2" />
               Añadir Disponibilidad
             </Button>
@@ -130,7 +130,7 @@ const AvailabilityPage = () => {
           ) : (
             <div className="bg-muted/40 rounded-lg p-8 text-center">
               <p className="text-muted-foreground">No hay horarios de disponibilidad configurados.</p>
-              <Button className="mt-4">Configurar Disponibilidad</Button>
+              <Button variant="default" className="mt-4">Configurar Disponibilidad</Button>
             </div>
           )}
         </div>
