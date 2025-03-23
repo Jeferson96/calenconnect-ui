@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -18,6 +19,7 @@ import AppointmentDetail from "./pages/AppointmentDetail";
 import NewAppointment from "./pages/NewAppointment";
 import AvailabilityPage from "./pages/AvailabilityPage";
 import ProfilePage from "./pages/ProfilePage";
+import SettingsPage from "./pages/SettingsPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -54,6 +56,7 @@ const App = () => (
                         <Route path="appointments/new" element={<NewAppointment />} />
                         <Route path="availability" element={<AvailabilityPage />} />
                         <Route path="profile" element={<ProfilePage />} />
+                        <Route path="settings" element={<SettingsPage />} />
                       </Routes>
                     </ProfessionalsProvider>
                   } />
