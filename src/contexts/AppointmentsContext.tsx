@@ -27,56 +27,60 @@ export const AppointmentsProvider = ({ children }: AppointmentsProviderProps) =>
   const [statistics, setStatistics] = useState<UserStatistics>({
     totalAppointments: 0,
     completedAppointments: 0,
-    pendingAppointments: 0
+    pendingAppointments: 0,
+    cancelledAppointments: 0
   });
   const [upcomingAppointments, setUpcomingAppointments] = useState<Appointment[]>([]);
-  
+
   // Función para cargar citas y calcular estadísticas
   const loadAppointments = useCallback(async () => {
     if (!authState.user?.id) return;
-    
+
     setLoading(true);
     setError(null);
-    
+
     try {
       // Una sola petición para obtener todas las citas
       const data = await appointmentsService.getAll({
         patientId: authState.user.id
       });
-      
+
       setAppointments(data);
-      
+
       // Calcular estadísticas
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      
+
       const completed = data.filter(app => app.status === 'COMPLETED').length;
-      
+
       const pending = data.filter(app => {
         if (app.status !== 'SCHEDULED') return false;
-        
+
         const appointmentDate = new Date(app.appointmentDate);
         appointmentDate.setHours(0, 0, 0, 0);
         return appointmentDate >= today;
       }).length;
-      
+
+      const cancelled = data.filter(app => app.status === 'CANCELLED').length;
+
       setStatistics({
         totalAppointments: data.length,
         completedAppointments: completed,
-        pendingAppointments: pending
+        pendingAppointments: pending,
+        cancelledAppointments: cancelled
       });
-      
+
       // Filtrar y ordenar próximas citas
       const future = data.filter(app => {
         if (app.status !== 'SCHEDULED') return false;
-        
+
         const appointmentDate = new Date(app.appointmentDate);
         appointmentDate.setHours(0, 0, 0, 0);
         return appointmentDate >= today;
-      }).sort((a, b) => 
+      }).sort((a, b) =>
         new Date(a.appointmentDate).getTime() - new Date(b.appointmentDate).getTime()
       );
-      
+
       setUpcomingAppointments(future);
     } catch (err) {
       console.error('Error loading appointments:', err);
@@ -85,36 +89,32 @@ export const AppointmentsProvider = ({ children }: AppointmentsProviderProps) =>
       setLoading(false);
     }
   }, [authState.user?.id]);
-  
+
   // Cargar citas al iniciar o cambiar de usuario
   useEffect(() => {
     loadAppointments();
   }, [loadAppointments]);
-  
+
   // Función para refrescar manualmente las citas
   const refreshAppointments = async () => {
     await loadAppointments();
   };
-  
+
   // Función para cancelar una cita
   const cancelAppointment = async (appointmentId: string) => {
-    try {
-      await appointmentsService.cancel(appointmentId);
-      
-      // Actualizar localmente sin hacer otra petición
-      const updatedAppointments = appointments.map(app => 
-        app.id === appointmentId ? { ...app, status: 'CANCELLED' as const } : app
-      );
-      
-      setAppointments(updatedAppointments);
-      
-      // Recalcular estadísticas y citas próximas
-      await loadAppointments();
-    } catch (error) {
-      throw error;
-    }
+    await appointmentsService.cancel(appointmentId);
+
+    // Actualizar localmente sin hacer otra petición
+    const updatedAppointments = appointments.map(app =>
+      app.id === appointmentId ? { ...app, status: 'CANCELLED' as const } : app
+    );
+
+    setAppointments(updatedAppointments);
+
+    // Recalcular estadísticas y citas próximas
+    await loadAppointments();
   };
-  
+
   return (
     <AppointmentsContext.Provider
       value={{

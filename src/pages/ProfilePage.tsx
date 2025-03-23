@@ -75,26 +75,26 @@ const ProfilePage = () => {
                 <>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
-                      <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+                      <CalendarIcon className="h-4 w-4 text-primary" />
                       <span className="text-sm">Citas Totales</span>
                     </div>
-                    <span className="font-medium">{statistics.totalAppointments}</span>
+                    <span className="font-medium text-lg">{statistics?.totalAppointments || 0}</span>
                   </div>
                   
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
-                      <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+                      <CalendarIcon className="h-4 w-4 text-green-500" />
                       <span className="text-sm">Citas Completadas</span>
                     </div>
-                    <span className="font-medium">{statistics.completedAppointments}</span>
+                    <span className="font-medium text-lg">{statistics?.completedAppointments || 0}</span>
                   </div>
                   
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-2">
-                      <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+                      <CalendarIcon className="h-4 w-4 text-orange-500" />
                       <span className="text-sm">Citas Pendientes</span>
                     </div>
-                    <span className="font-medium">{statistics.pendingAppointments}</span>
+                    <span className="font-medium text-lg">{statistics?.pendingAppointments || 0}</span>
                   </div>
                 </>
               )}

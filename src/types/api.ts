@@ -65,4 +65,5 @@ export interface UserStatistics {
   totalAppointments: number;
   completedAppointments: number;
   pendingAppointments: number;
+  cancelledAppointments: number;
 }

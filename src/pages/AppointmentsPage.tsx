@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import DashboardLayout from '@/components/dashboard/DashboardLayout';
 import { Button } from '@/components/ui/button';
-import { PlusIcon, ChevronDownIcon, ChevronUpIcon } from 'lucide-react';
+import { PlusIcon, ChevronDownIcon, ChevronUpIcon, Loader2 } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { Appointment } from '@/types/api';
 import { formatDate } from '@/lib/utils';
@@ -16,6 +16,7 @@ import {
   CollapsibleTrigger 
 } from '@/components/ui/collapsible';
 import { Professional } from '@/services/api/professionals';
+import { UserIcon } from 'lucide-react';
 
 // Interfaz para agrupar citas por profesional
 interface GroupedAppointments {
@@ -31,15 +32,24 @@ const AppointmentsPage = () => {
   const { 
     appointments, 
     loading: appointmentsLoading, 
-    cancelAppointment 
+    cancelAppointment,
+    error,
+    refreshAppointments
   } = useAppointments();
   
   const { professionals, loading: professionalsLoading } = useProfessionals();
-  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({});
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
+  const [cancellingAppointments, setCancellingAppointments] = useState<Record<string, boolean>>({});
   
   // Función para cancelar una cita
   const handleCancelAppointment = async (appointmentId: string) => {
+    // Si ya se está cancelando, no hacer nada
+    if (cancellingAppointments[appointmentId]) return;
+    
     try {
+      // Marcar esta cita como "cancelando"
+      setCancellingAppointments(prev => ({ ...prev, [appointmentId]: true }));
+      
       await cancelAppointment(appointmentId);
       
       toast({
@@ -53,6 +63,9 @@ const AppointmentsPage = () => {
         title: 'Error',
         description: 'No se pudo cancelar la cita. Por favor, intenta de nuevo.',
       });
+    } finally {
+      // Desmarcar la cita como "cancelando"
+      setCancellingAppointments(prev => ({ ...prev, [appointmentId]: false }));
     }
   };
   
@@ -90,8 +103,8 @@ const AppointmentsPage = () => {
         };
         
         // Abrir el grupo por defecto si no existe en el estado
-        if (openGroups[appointment.professionalId] === undefined) {
-          setOpenGroups(prev => ({
+        if (expandedGroups[appointment.professionalId] === undefined) {
+          setExpandedGroups(prev => ({
             ...prev,
             [appointment.professionalId]: true
           }));
@@ -111,7 +124,7 @@ const AppointmentsPage = () => {
   
   // Manejar cambio de estado de los grupos desplegables
   const toggleGroup = (professionalId: string) => {
-    setOpenGroups(prev => ({
+    setExpandedGroups(prev => ({
       ...prev,
       [professionalId]: !prev[professionalId]
     }));
@@ -124,54 +137,40 @@ const AppointmentsPage = () => {
     grouped: GroupedAppointments, 
     onCancel?: (appointmentId: string) => void
   ) => {
-    if (Object.keys(grouped).length === 0) {
-      return (
-        <div className="bg-muted/40 rounded-lg p-8 text-center">
-          <p className="text-muted-foreground">No hay citas disponibles.</p>
-        </div>
-      );
-    }
-    
-    return (
-      <div className="space-y-6">
-        {Object.entries(grouped).map(([professionalId, group]) => (
-          <div 
-            key={professionalId} 
-            className="border rounded-lg overflow-hidden"
-          >
-            <Collapsible 
-              open={openGroups[professionalId]} 
-              onOpenChange={() => toggleGroup(professionalId)}
-            >
-              <CollapsibleTrigger className="flex items-center justify-between w-full p-4 bg-card hover:bg-accent/10 border-b transition-colors">
-                <div className="flex items-center">
-                  <h3 className="font-medium text-left">
-                    {group.professional ? group.professional.fullName : `Profesional (ID: ${professionalId.slice(0, 8)})`}
-                  </h3>
-                  <span className="ml-2 text-sm text-muted-foreground">
-                    ({group.appointments.length} {group.appointments.length === 1 ? 'cita' : 'citas'})
-                  </span>
-                </div>
-                {openGroups[professionalId] ? <ChevronUpIcon className="h-4 w-4" /> : <ChevronDownIcon className="h-4 w-4" />}
-              </CollapsibleTrigger>
-              
-              <CollapsibleContent>
-                <div className="divide-y border-b">
-                  {group.appointments.map(appointment => (
-                    <AppointmentCard 
-                      key={appointment.id} 
-                      appointment={appointment} 
-                      professionalName={group.professional?.fullName}
-                      onCancel={onCancel}
-                    />
-                  ))}
-                </div>
-              </CollapsibleContent>
-            </Collapsible>
+    return Object.entries(grouped).map(([professionalId, group]) => (
+      <div key={professionalId} className="mb-6">
+        <div 
+          className="flex items-center justify-between p-4 bg-secondary/10 rounded-t-md cursor-pointer hover:bg-secondary/20 transition-colors"
+          onClick={() => toggleGroup(professionalId)}
+        >
+          <div className="flex items-center">
+            <UserIcon className="h-5 w-5 mr-2 text-secondary" />
+            <h3 className="font-medium">
+              {group.professional?.fullName || `Profesional ${professionalId.slice(0, 8)}`}
+            </h3>
           </div>
-        ))}
+          <ChevronDownIcon className={`h-5 w-5 ${expandedGroups[professionalId] ? 'transform rotate-180' : ''} transition-transform`} />
+        </div>
+        
+        {expandedGroups[professionalId] && (
+          <div className="border rounded-b-md divide-y">
+            {group.appointments.length === 0 ? (
+              <p className="py-4 px-6 text-muted-foreground text-center">No hay citas con este profesional</p>
+            ) : (
+              group.appointments.map(appointment => (
+                <AppointmentCard 
+                  key={appointment.id} 
+                  appointment={appointment} 
+                  professionalName={group.professional?.fullName}
+                  onCancel={onCancel}
+                  isCancelling={cancellingAppointments[appointment.id]}
+                />
+              ))
+            )}
+          </div>
+        )}
       </div>
-    );
+    ));
   };
   
   return (
@@ -262,9 +261,10 @@ interface AppointmentCardProps {
   appointment: Appointment;
   professionalName?: string;
   onCancel?: (appointmentId: string) => void;
+  isCancelling?: boolean;
 }
 
-const AppointmentCard = ({ appointment, professionalName, onCancel }: AppointmentCardProps) => {
+const AppointmentCard = ({ appointment, professionalName, onCancel, isCancelling }: AppointmentCardProps) => {
   // Determinar color según el estado
   const statusColor = {
     SCHEDULED: "bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300",
@@ -302,8 +302,16 @@ const AppointmentCard = ({ appointment, professionalName, onCancel }: Appointmen
                 variant="destructive" 
                 size="sm"
                 onClick={() => onCancel(appointment.id)}
+                disabled={isCancelling}
               >
-                Cancelar
+                {isCancelling ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden="true" />
+                    <span>Cancelando...</span>
+                  </>
+                ) : (
+                  'Cancelar'
+                )}
               </Button>
             )}
           </div>

@@ -6,7 +6,7 @@ import { formatDate } from '@/lib/utils';
 import { useToast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeftIcon, CalendarIcon, ClockIcon, UserIcon } from 'lucide-react';
+import { ArrowLeftIcon, CalendarIcon, ClockIcon, UserIcon, Loader2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { useAppointments } from '@/contexts/AppointmentsContext';
@@ -45,6 +45,7 @@ const AppointmentDetail = () => {
   
   const [appointment, setAppointment] = useState<Appointment | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isCancelling, setIsCancelling] = useState(false);
   
   // Obtener la cita específica del contexto global
   useEffect(() => {
@@ -65,9 +66,10 @@ const AppointmentDetail = () => {
   }, [id, appointments, appLoading, uiToast]);
   
   const handleCancel = async () => {
-    if (!appointment) return;
+    if (!appointment || isCancelling) return;
     
     try {
+      setIsCancelling(true);
       await cancelAppointment(appointment.id);
       
       toast.success('Cita cancelada correctamente');
@@ -84,6 +86,8 @@ const AppointmentDetail = () => {
         title: 'Error',
         description: 'No se pudo cancelar la cita. Por favor, intenta de nuevo.',
       });
+    } finally {
+      setIsCancelling(false);
     }
   };
   
@@ -164,8 +168,19 @@ const AppointmentDetail = () => {
           </CardContent>
           <CardFooter className="flex justify-end space-x-2">
             {appointment?.status === 'SCHEDULED' && (
-              <Button variant="destructive" onClick={handleCancel}>
-                Cancelar Cita
+              <Button 
+                variant="destructive" 
+                onClick={handleCancel}
+                disabled={isCancelling}
+              >
+                {isCancelling ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" aria-hidden="true" />
+                    <span>Cancelando...</span>
+                  </>
+                ) : (
+                  'Cancelar Cita'
+                )}
               </Button>
             )}
           </CardFooter>
