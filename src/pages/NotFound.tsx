@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import { MapPinOff, ArrowLeft, Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import PageTransition from "@/components/layout/PageTransition";
 
 const NotFound = () => {
   const location = useLocation();
@@ -62,7 +63,7 @@ const NotFound = () => {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+    <PageTransition className="min-h-screen flex items-center justify-center bg-background p-4">
       <motion.div
         className="text-center space-y-6 max-w-lg"
         variants={containerVariants}
@@ -148,7 +149,7 @@ const NotFound = () => {
           Ruta: <code className="bg-muted px-1 py-0.5 rounded text-xs">{location.pathname}</code>
         </motion.p>
       </motion.div>
-    </div>
+    </PageTransition>
   );
 };
 

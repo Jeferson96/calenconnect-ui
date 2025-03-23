@@ -20,6 +20,7 @@ import NewAppointment from "./pages/NewAppointment";
 import AvailabilityPage from "./pages/AvailabilityPage";
 import ProfilePage from "./pages/ProfilePage";
 import SettingsPage from "./pages/SettingsPage";
+import AnimatePresenceWrapper from "./components/layout/AnimatePresenceWrapper";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -39,32 +40,34 @@ const App = () => (
         <BrowserRouter>
           <AuthProvider>
             <AppointmentsProvider>
-              <Routes>
-                {/* Public routes */}
-                <Route path="/" element={<Index />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-                
-                {/* Protected routes */}
-                <Route element={<ProtectedRoute />}>
-                  <Route path="/dashboard/*" element={
-                    <ProfessionalsProvider>
-                      <Routes>
-                        <Route path="" element={<Dashboard />} />
-                        <Route path="appointments" element={<AppointmentsPage />} />
-                        <Route path="appointments/:id" element={<AppointmentDetail />} />
-                        <Route path="appointments/new" element={<NewAppointment />} />
-                        <Route path="availability" element={<AvailabilityPage />} />
-                        <Route path="profile" element={<ProfilePage />} />
-                        <Route path="settings" element={<SettingsPage />} />
-                      </Routes>
-                    </ProfessionalsProvider>
-                  } />
-                </Route>
-                
-                {/* Catch-all route */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
+              <AnimatePresenceWrapper>
+                <Routes>
+                  {/* Public routes */}
+                  <Route path="/" element={<Index />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
+                  
+                  {/* Protected routes */}
+                  <Route element={<ProtectedRoute />}>
+                    <Route path="/dashboard/*" element={
+                      <ProfessionalsProvider>
+                        <Routes>
+                          <Route path="" element={<Dashboard />} />
+                          <Route path="appointments" element={<AppointmentsPage />} />
+                          <Route path="appointments/:id" element={<AppointmentDetail />} />
+                          <Route path="appointments/new" element={<NewAppointment />} />
+                          <Route path="availability" element={<AvailabilityPage />} />
+                          <Route path="profile" element={<ProfilePage />} />
+                          <Route path="settings" element={<SettingsPage />} />
+                        </Routes>
+                      </ProfessionalsProvider>
+                    } />
+                  </Route>
+                  
+                  {/* Catch-all route */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </AnimatePresenceWrapper>
             </AppointmentsProvider>
           </AuthProvider>
         </BrowserRouter>

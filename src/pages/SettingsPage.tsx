@@ -1,7 +1,7 @@
 
 import { useEffect } from "react";
 import { motion } from "framer-motion";
-import { Cog, Construction, ArrowLeft } from "lucide-react";
+import { Construction, ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -35,13 +35,14 @@ const SettingsPage = () => {
     }
   };
 
-  const iconVariants = {
+  // Corregido - Definimos la animación adecuadamente
+  const iconAnimations = {
     rotate: {
       rotate: [0, 15, -15, 10, -10, 5, -5, 0],
       transition: {
         duration: 2,
         repeat: Infinity,
-        repeatType: "reverse",
+        repeatType: "reverse" as const,
         ease: "easeInOut",
         repeatDelay: 2
       }
@@ -72,7 +73,6 @@ const SettingsPage = () => {
           <motion.div 
             className="flex justify-center mb-8" 
             variants={itemVariants}
-            animate="rotate"
             custom={1}
           >
             <div className="relative">
@@ -82,7 +82,9 @@ const SettingsPage = () => {
                 animate="pulse"
               />
               <div className="w-24 h-24 bg-card rounded-full flex items-center justify-center border border-border">
-                <motion.div variants={iconVariants} animate="rotate">
+                <motion.div 
+                  animate={iconAnimations.rotate}
+                >
                   <Construction size={48} className="text-secondary" />
                 </motion.div>
               </div>
@@ -113,7 +115,7 @@ const SettingsPage = () => {
             <Card className="max-w-lg mx-auto">
               <CardContent className="pt-6">
                 <h3 className="text-xl font-semibold mb-3 flex items-center gap-2">
-                  <Cog className="text-primary h-5 w-5" />
+                  <Construction className="text-primary h-5 w-5" />
                   Próximamente
                 </h3>
                 <ul className="space-y-3 text-left">
