@@ -28,6 +28,12 @@ const userService = {
     return response.data.data;
   },
   
+  // Obtener perfil del usuario por UUID
+  getProfileByUuid: async (uuid: string): Promise<User> => {
+    const response = await api.get<ApiResponse<User>>(`/api/users/${uuid}`);
+    return response.data.data;
+  },
+  
   // Actualizar perfil del usuario
   updateProfile: async (data: Partial<UserProfile>): Promise<User> => {
     const response = await api.put<ApiResponse<User>>('/api/users/profile', data);

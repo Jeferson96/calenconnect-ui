@@ -3,6 +3,8 @@ export interface User {
   email: string;
   firstName: string;
   lastName: string;
+  fullName?: string;
+  role?: 'PATIENT' | 'PROFESSIONAL';
 }
 
 export interface AuthState {

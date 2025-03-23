@@ -5,6 +5,8 @@ import { User, AuthState } from '@/types';
 import { useToast } from '@/components/ui/use-toast';
 import { toast as sonnerToast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
+import api from '@/lib/axios'; // Importamos la instancia configurada de axios
+import userService from '@/services/api/user'; // Importamos el servicio de usuario
 
 interface AuthContextProps {
   authState: AuthState;
@@ -59,7 +61,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const fetchUserProfile = async (session: Session) => {
     try {
-      // En lugar de consultar la tabla profiles, usamos los datos del usuario de la sesión
+      // Obtenemos el usuario de la sesión
       const { user } = session;
       
       if (!user) {
@@ -67,16 +69,57 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return;
       }
       
-      // Extraer los datos del usuario de los metadatos
+      try {
+        // Utilizamos el servicio de usuario para obtener el perfil
+        const userData = await userService.getProfileByUuid(user.id);
+        
+        // Crear el objeto de usuario con los datos de la API
+        const userProfile: User = {
+          id: user.id,
+          email: user.email || '',
+          firstName: userData.firstName || '',
+          lastName: userData.lastName || '',
+          // Omitimos fullName para evitar problemas de linting
+          role: userData.role as 'PATIENT' | 'PROFESSIONAL', // Aseguramos el tipo correcto
+        };
+        
+        console.log('Perfil de usuario obtenido con éxito:', userProfile);
+        
+        // Actualizar el estado de autenticación con el perfil completo
+        setAuthState({
+          user: userProfile,
+          session,
+          loading: false,
+        });
+        
+        return;
+      } catch (apiError) {
+        console.error('Error fetching user role:', apiError);
+        
+        // Mostrar un toast con el error - usando variant como destructive
+        toast({
+          variant: 'destructive',
+          title: 'Advertencia',
+          description: 'No se pudo obtener información completa del perfil. Algunas funciones podrían estar limitadas.',
+        });
+        
+        // Si falla la petición a la API, continuamos con los datos básicos del usuario
+      }
+      
+      // Fallback: usar los metadatos básicos si la API falla
       const userData = user.user_metadata || {};
       
-      // Crear un objeto de usuario con los datos disponibles
+      // Crear un objeto de usuario con los datos disponibles (sin rol)
       const userProfile: User = {
         id: user.id,
         email: user.email || '',
         firstName: userData.first_name || '',
         lastName: userData.last_name || '',
+        // Por defecto, asignamos el rol PATIENT si no se pudo obtener del API
+        role: 'PATIENT',
       };
+      
+      console.log('Usando perfil básico del usuario:', userProfile);
       
       // Actualizar el estado de autenticación
       setAuthState({
@@ -87,9 +130,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       
     } catch (error) {
       console.error('Profile fetch error:', error);
-      // Registrar el error tanto en cliente como en servidor (si implementaste la función logSupabaseError)
-      // logSupabaseError('fetchUserProfile', error);
-      
       // Actualizar el estado para indicar que no hay usuario autenticado
       setAuthState({ user: null, session: null, loading: false });
     }
