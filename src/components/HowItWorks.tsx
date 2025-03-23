@@ -1,9 +1,11 @@
 import React, { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Check, Clock, Calendar, Bell, ArrowRight, UserCircle, CalendarRange } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const HowItWorks = () => {
   const elementsRef = useRef<(HTMLDivElement | null)[]>([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -121,7 +123,12 @@ const HowItWorks = () => {
           ref={(el) => elementsRef.current[3] = el}
           className="opacity-0 flex justify-center mt-12"
         >
-          <Button size="lg" variant="secondary">
+          <Button 
+            size="lg" 
+            variant="secondary"
+            onClick={() => navigate('/register')}
+            aria-label="Ir a la página de registro para comenzar a usar la plataforma"
+          >
             Comenzar Ahora <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         </div>

@@ -5,6 +5,14 @@ import { Clock, Bell, Layout, Calendar, ArrowRight } from "lucide-react";
 const Benefits = () => {
   const elementsRef = useRef<(HTMLDivElement | null)[]>([]);
 
+  // Función para desplazarse a una sección específica
+  const scrollToSection = (sectionId: string) => {
+    const section = document.getElementById(sectionId);
+    if (section) {
+      section.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   useEffect(() => {
     const observer = new IntersectionObserver(
       (entries) => {
@@ -79,7 +87,11 @@ const Benefits = () => {
           ref={(el) => elementsRef.current[5] = el}
           className="opacity-0 flex justify-center mt-12"
         >
-          <Button variant="outline">
+          <Button 
+            variant="outline"
+            onClick={() => scrollToSection('testimonios')}
+            aria-label="Ver testimonios de usuarios"
+          >
             Descubrir Más <ArrowRight className="ml-2 h-4 w-4" />
           </Button>
         </div>

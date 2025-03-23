@@ -1,9 +1,11 @@
 import React, { useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { CalendarCheck, Clock, ArrowRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const Hero = () => {
   const elementsRef = useRef<(HTMLDivElement | null)[]>([]);
+  const navigate = useNavigate();
 
   // Función para obtener el mes y año actual en español
   const getCurrentMonthYear = () => {
@@ -67,10 +69,20 @@ const Hero = () => {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 pt-4 w-full sm:w-auto">
-            <Button size="lg" variant="default">
+            <Button 
+              size="lg" 
+              variant="default" 
+              onClick={() => navigate('/register')}
+              aria-label="Ir a la página de registro para agendar una cita"
+            >
               Agendar una Cita <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
-            <Button size="lg" variant="outline">
+            <Button 
+              size="lg" 
+              variant="outline"
+              onClick={() => navigate('/login')}
+              aria-label="Ir a la página de login para gestionar disponibilidad"
+            >
               Gestionar mi Disponibilidad
             </Button>
           </div>
@@ -106,7 +118,7 @@ const Hero = () => {
               </div>
               
               <div className="grid grid-cols-7 gap-2 mb-6">
-                {["L", "M", "X", "J", "V", "S", "D"].map((day, i) => (
+                {["L", "M", "M", "J", "V", "S", "D"].map((day, i) => (
                   <div key={i} className="text-xs text-center font-medium">
                     {day}
                   </div>
