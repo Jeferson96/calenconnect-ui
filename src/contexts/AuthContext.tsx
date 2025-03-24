@@ -82,6 +82,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         session,
         loading: false,
       });
+
+      // Redirigir al dashboard si estamos en la página de login o registro
+      // y no estamos en un proceso de carga inicial
+      const currentPath = window.location.pathname;
+      if ((currentPath === '/login' || currentPath === '/register' || currentPath === '/') && !authState.loading) {
+        navigate('/dashboard');
+      }
     } catch (error) {
       console.error('Profile handling error:', error);
       
@@ -105,6 +112,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           session,
           loading: false,
         });
+
+        // Redirigir incluso en caso de error al obtener el perfil completo
+        const currentPath = window.location.pathname;
+        if ((currentPath === '/login' || currentPath === '/register' || currentPath === '/') && !authState.loading) {
+          navigate('/dashboard');
+        }
         
         toast({
           variant: 'destructive',
@@ -119,20 +132,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   useEffect(() => {
+    let isMounted = true;
+    
     // Check for active session on mount
     supabase.auth.getSession().then(({ data: { session } }) => {
-      handleSession(session);
+      if (isMounted) {
+        handleSession(session);
+      }
     }).catch(error => {
       console.error('Unexpected error fetching session:', error);
-      setAuthState((prev) => ({ ...prev, loading: false }));
+      if (isMounted) {
+        setAuthState((prev) => ({ ...prev, loading: false }));
+      }
     });
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      handleSession(session);
+      if (isMounted) {
+        handleSession(session);
+      }
     });
 
     return () => {
+      isMounted = false;
       subscription.unsubscribe();
     };
   }, []);
@@ -146,11 +168,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       if (error) throw error;
       
+      // No redireccionar aquí, esperar a que el estado de autenticación se actualice
+      // La redirección automática ocurrirá a través del handleSession
       sonnerToast.success('Inicio de sesión exitoso', {
         description: '¡Bienvenido de nuevo!',
       });
       
-      navigate('/dashboard');
+      // Eliminamos la redirección manual que causa el problema
+      // navigate('/dashboard');
     } catch (error: Error | unknown) {
       console.error('Sign in error:', error);
       

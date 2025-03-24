@@ -13,6 +13,11 @@ const Login = () => {
     return <Navigate to="/dashboard" replace />;
   }
   
+  // También redirigir si hay una sesión activa, incluso si aún no se ha cargado el usuario completo
+  if (authState.session && !authState.loading) {
+    return <Navigate to="/dashboard" replace />;
+  }
+  
   return (
     <PageTransition className="min-h-screen flex flex-col items-center justify-center p-4 bg-background relative overflow-hidden">
       {/* Background decoration */}
