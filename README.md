@@ -1,69 +1,166 @@
-# Welcome to your Lovable project
+# CalenConnect UI
 
-## Project info
+<p align="center">
+  <img src="https://vitejs.dev/logo.svg" width="120" alt="Vite Logo" />
+</p>
 
-**URL**: https://lovable.dev/projects/e73c0e47-c731-48ce-907b-99e567dc2564
+## 📌 Descripción del Proyecto
 
-## How can I edit this code?
+CalenConnect UI es una aplicación frontend moderna desarrollada con React y TypeScript que proporciona una interfaz de usuario intuitiva y elegante para la gestión de calendarios, disponibilidad y citas. La aplicación está construida siguiendo las mejores prácticas de desarrollo web moderno y principios de diseño UI/UX.
 
-There are several ways of editing your application.
+## 🎯 Objetivo y Alcance
 
-**Use Lovable**
+### Objetivo General
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/e73c0e47-c731-48ce-907b-99e567dc2564) and start prompting.
+Proporcionar una interfaz de usuario moderna, accesible y responsive que permita a los usuarios gestionar eficientemente sus calendarios y citas.
 
-Changes made via Lovable will be committed automatically to this repo.
+### Objetivos Específicos
 
-**Use your preferred IDE**
+- Ofrecer una experiencia de usuario fluida y agradable
+- Facilitar la gestión de perfiles y preferencias de calendario
+- Permitir la visualización y gestión de períodos de disponibilidad
+- Proporcionar herramientas intuitivas para la creación y gestión de citas
+- Implementar un diseño responsive que funcione en todos los dispositivos
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+### Público Objetivo
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+- Profesionales que necesitan gestionar su agenda
+- Usuarios que buscan programar citas o servicios
+- Empresas que requieren un sistema de gestión de citas
 
-Follow these steps:
+## 📂 Estructura del Proyecto
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+```
+calenconnect-ui/
+├── src/
+│   ├── components/     # Componentes reutilizables
+│   ├── pages/         # Páginas de la aplicación
+│   ├── hooks/         # Custom hooks
+│   ├── services/      # Servicios y llamadas a API
+│   ├── store/         # Estado global
+│   ├── types/         # Definiciones de tipos
+│   ├── utils/         # Utilidades y helpers
+│   └── App.tsx        # Componente principal
+├── public/            # Archivos estáticos
+└── config/            # Archivos de configuración
 ```
 
-**Edit a file directly in GitHub**
+## ⚙️ Requisitos Previos
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+Para ejecutar este proyecto, necesitarás:
 
-**Use GitHub Codespaces**
+- Node.js (v18 o superior)
+- npm (v8 o superior) o pnpm
+- Conexión a Internet para las dependencias
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## 🚀 Instrucciones de Instalación y Ejecución
 
-## What technologies are used for this project?
+### Instalación
 
-This project is built with .
+1. Clona el repositorio:
+   ```bash
+   git clone <URL_DEL_REPOSITORIO>
+   cd calenconnect-ui
+   ```
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+2. Instala las dependencias:
+   ```bash
+   npm install
+   ```
 
-## How can I deploy this project?
+3. Configura las variables de entorno:
+   ```bash
+   cp .env.example .env
+   ```
+   Edita el archivo `.env` con tus propias credenciales.
 
-Simply open [Lovable](https://lovable.dev/projects/e73c0e47-c731-48ce-907b-99e567dc2564) and click on Share -> Publish.
+### Ejecución
 
-## I want to use a custom domain - is that possible?
+```bash
+# Modo desarrollo
+npm run dev
 
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+# Construir para producción
+npm run build
+
+# Previsualizar build de producción
+npm run preview
+```
+
+La aplicación estará disponible en: `http://localhost:5173`
+
+## 🛠 Tecnologías Principales
+
+- **Vite**: Herramienta de construcción y desarrollo
+- **React**: Biblioteca para construcción de interfaces
+- **TypeScript**: Superset tipado de JavaScript
+- **Tailwind CSS**: Framework de utilidades CSS
+- **shadcn/ui**: Componentes de UI reutilizables
+- **React Router**: Enrutamiento de la aplicación
+- **Axios**: Cliente HTTP para peticiones API
+
+## 🧪 Pruebas
+
+```bash
+# Ejecutar pruebas unitarias
+npm run test
+
+# Ejecutar pruebas con coverage
+npm run test:coverage
+```
+
+## 🛠 Guía de Contribución
+
+Agradecemos todas las contribuciones. Para contribuir:
+
+1. **Fork** del repositorio
+2. Crea una **rama** para tu feature (`git checkout -b feature/amazing-feature`)
+3. Realiza tus cambios siguiendo las convenciones de código
+4. **Commit** tus cambios (siguiendo Conventional Commits)
+5. **Push** a la rama (`git push origin feature/amazing-feature`)
+6. Abre un **Pull Request**
+
+### Convenciones de Commits
+
+Seguimos las convenciones de Conventional Commits:
+
+```
+<tipo>(<ámbito opcional>): <descripción>
+
+[Descripción extendida opcional]
+
+[Referencias opcionales a issues]
+```
+
+Tipos principales:
+- `feat`: Nueva funcionalidad
+- `fix`: Corrección de errores
+- `docs`: Cambios en documentación
+- `style`: Cambios de formato
+- `refactor`: Refactorización de código
+- `test`: Cambios en pruebas
+- `chore`: Tareas de mantenimiento
+
+## 🚀 Despliegue
+
+Para desplegar la aplicación:
+
+1. Construye la aplicación:
+   ```bash
+   npm run build
+   ```
+
+2. El resultado de la construcción estará en el directorio `dist/`
+
+3. Despliega el contenido del directorio `dist/` en tu servidor web preferido
+
+## 🙋‍♂️ Soporte
+
+Si necesitas ayuda:
+- Abre un issue en el repositorio
+- Consulta la documentación en `/docs`
+- Contacta al equipo de desarrollo
+
+---
+
+Desarrollado con ❤️ usando [React](https://reactjs.org/) y [Vite](https://vitejs.dev/)

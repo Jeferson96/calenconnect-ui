@@ -282,32 +282,176 @@ El proyecto ya cuenta con un sistema de registro y login. Ahora, es necesario de
 
 
 
+#### 🔹 Usuario: 
+
+### 🧠 **Contexto:**
+
+El calendario actual utilizado para asignar citas necesita ser mejorado en cuanto a diseño, experiencia de usuario y accesibilidad.  
+El objetivo principal es que el proceso de agendar una cita sea más claro, intuitivo y visualmente atractivo para el usuario final.
+
+----------
+
+### 🎯 **Requisitos del rediseño:**
+
+1.  🧭 **Flujo guiado e intuitivo:**
+    
+    -   El calendario debe estar organizado de tal manera que el usuario pueda **navegar fácilmente entre días, horarios y profesionales**.
+    -   Debe facilitar la **selección de un espacio disponible** sin ambigüedad.
+    -   Mostrar el estado de cada bloque: _disponible_, _ocupado_, _no disponible_.
+2.  🎨 **Mejoras visuales esperadas:**
+    
+    -   Diseño moderno y limpio (puede basarse en componentes como Tailwind, Material UI o similares).
+    -   Uso de colores claros y contrastes adecuados según estado del bloque (e.g. verde para disponible, gris para no disponible, rojo para ocupado).
+    -   Compatible con **modo claro y modo oscuro**.
+3.  ♿ **Accesibilidad:**
+    
+    -   Compatible con navegación por teclado.
+    -   Etiquetas ARIA para lectores de pantalla.
+    -   Tamaño de fuente legible y botones accesibles en dispositivos táctiles.
+4.  📱 **Responsivo:**
+    
+    -   El diseño debe adaptarse correctamente a dispositivos móviles, tablets y escritorio.
+5.  📌 **Cumplimiento de estándares:**
+    
+    -   Aplicar buenas prácticas de UX.
+    -   Seguir pautas de accesibilidad como **WCAG 2.1** cuando sea posible.
+
+----------
+
+### 🛠️ Instrucciones:
+
+1.  Propón un rediseño estructurado del calendario, basado en los criterios anteriores.
+2.  Puedes incluir:
+    -   Esquema visual o estructura en pseudocódigo/HTML.
+    -   Sugerencias de tecnologías o componentes reutilizables.
+    -   Recomendaciones de experiencia de usuario.
+3.  (Opcional) Si es útil, incluye un ejemplo de cómo se podrían organizar los componentes en React o similares.
+
+----------
+
+### ✅ Resultado esperado:
+
+-   Propuesta de mejora visual y funcional del calendario.
+-   Justificación de cada cambio en base a principios de usabilidad y accesibilidad.
+
+@Codebase 
+
+Los estilos se deben seguir usando con las tecnologias actuales, no se debe crear ningun archivo de css o similar, se debe usar tailwind o los componentes de shadcn
+
 ---
 
-#### 🔹 IA:
+#### 🔹 Usuario: 
+
+## ✅ Prompt Optimizado
+
+----------
+
+### 🧠 **Contexto:**
+
+Actualmente, el sistema permite visualizar la interfaz tanto en **modo oscuro como claro**. Sin embargo, se requiere definir un comportamiento por defecto para garantizar una experiencia visual consistente y controlada desde el primer ingreso del usuario.
+
+----------
+
+### 🎯 **Objetivo:**
+
+Establecer el **modo oscuro como tema predeterminado** en toda la aplicación.
+
+----------
+
+### 📌 Requisitos específicos:
+
+1.  **Modo oscuro por defecto:**
+    
+    -   Si el usuario accede por primera vez a la aplicación (sin preferencias guardadas en `localStorage`, `cookies`, o almacenamiento persistente), el sistema debe **iniciar automáticamente en modo oscuro**.
+2.  **Persistencia de preferencia:**
+    
+    -   Si el usuario cambia el tema manualmente a modo claro, su elección debe ser guardada y respetada en visitas futuras.
+    -   Se debe usar `localStorage`, cookies u otro mecanismo adecuado para conservar esta preferencia entre sesiones.
+3.  **Desactivar la detección automática del sistema operativo:**
+    
+    -   El sistema **no debe usar** la preferencia del sistema (`prefers-color-scheme`) como criterio de selección por defecto.
+
+----------
+
+### 🛠️ Instrucciones:
+
+1.  Implementa o ajusta el sistema de gestión de temas para que:
+    -   El tema por defecto sea "dark" si no hay preferencia previa guardada.
+    -   Se pueda cambiar de forma manual desde la UI.
+    -   La elección del usuario se persista correctamente.
+2.  (Opcional) Si se usa Tailwind CSS, Next.js o React Context, sugiere una implementación reutilizable con un hook o provider.
+3.  Asegúrate de que el cambio de tema:
+    -   Aplique correctamente en todas las páginas.
+    -   No cause parpadeos o "flicker" de tema al cargar.
+    -   Sea compatible con animaciones suaves de transición (si aplica).
+
+----------
+
+### ✅ Resultado esperado:
+
+-   El sistema carga siempre en modo oscuro por defecto.
+-   La preferencia del usuario se mantiene al navegar o recargar.
+-   El modo claro solo se aplica si el usuario lo selecciona manualmente.
+
 
 
 ---
 
 #### 🔹 Usuario: 
 
+@Codebase 
 
----
+### 🧠 **Contexto:**
 
-#### 🔹 IA:
+En la **página de inicio de la aplicación**, actualmente solo funcionan correctamente los botones de:
 
+-   **Iniciar sesión**
+-   **Registrarse**
 
-----
+El resto de los botones visibles en la misma página **no están ejecutando ninguna acción**, lo que afecta la experiencia del usuario y la funcionalidad esperada de la interfaz.
 
-#### 🔹 Usuario: 
+----------
 
+### 🎯 **Objetivo:**
 
-#### 🔹 IA:
+Asegurar que **todos los botones presentes en la página de inicio** tengan comportamiento funcional y ejecuten la acción correspondiente según su propósito.
 
+----------
 
----
+### 📌 Requisitos específicos:
 
-#### 🔹 Usuario: 
+1.  **Auditar todos los botones disponibles** en la página de inicio y verificar:
+    
+    -   Qué acción se espera para cada botón.
+    -   Si tienen asignado un `onClick`, `href`, o evento funcional adecuado.
+2.  **Aplicar los cambios necesarios para cada botón**:
+    
+    -   Redirigir a secciones relevantes dentro de la misma página (scroll a anclas).
+    -   Navegar a otras rutas internas (por ejemplo, `/features`, `/pricing`, etc.).
+    -   Desplegar un modal, tooltip, información adicional u otro componente interactivo si aplica.
+    -   Ejecutar una función definida si se trata de un botón con lógica personalizada.
+3.  **Validar accesibilidad y estados del botón:**
+    
+    -   Asegurarse de que todos tengan estados visuales (`hover`, `focus`, `disabled`) correctamente aplicados.
+    -   Incluir atributos como `aria-label` si se requiere para mejorar la experiencia en lectores de pantalla.
+
+----------
+
+### 🛠️ Instrucciones:
+
+1.  Revisa el código actual de la página de inicio.
+2.  Identifica todos los botones sin acción definida.
+3.  Asigna a cada uno la funcionalidad esperada según su contexto y texto visible.
+4.  Asegúrate de mantener coherencia con el estilo y la arquitectura del proyecto.
+5.  (Opcional) Usa un sistema de navegación (como `next/router`, `react-router-dom` o anchors) según el framework utilizado.
+
+----------
+
+### ✅ Resultado esperado:
+
+-   Todos los botones de la página de inicio son interactivos y funcionales.
+-   El usuario puede navegar o interactuar con la aplicación desde esta página sin puntos muertos.
+-   Se mantiene la experiencia de usuario fluida y profesional.
   
   
 ---
